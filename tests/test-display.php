@@ -55,6 +55,25 @@ class DisplayTest extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_sticky_post_moved_to_front_of_only_first_page() {
+		$cat_id    = self::factory()->category->create();
+		$post_ids  = $this->create_posts_and_assign_to_category( 4, $cat_id );
+		$sticky_id = $post_ids[1];
+
+		update_option( 'posts_per_page', 2 );
+
+		Meta\sticky_post_for_term( $sticky_id, $cat_id );
+
+		$wp_query = $this->get_wp_query_for_url( get_term_link( $cat_id, 'category' ) );
+
+		$this->assertCount( 2, $wp_query->posts );
+		$this->assertEquals( $sticky_id, $wp_query->posts[0]->ID );
+
+		// Move onto page two, where we should not see the sticky post a second time.
+		$wp_query = $this->get_wp_query_for_url( add_query_arg( 'paged', 2, get_term_link( $cat_id, 'category' ) ) );
+		$this->assertNotEquals( $sticky_id, $wp_query->posts[0]->ID, 'Sticky post should not be repeated on each page.' );
+	}
+
 	public function test_sticky_post_id_is_not_duplicated() {
 		$cat_id    = self::factory()->category->create();
 		$post_ids  = $this->create_posts_and_assign_to_category( 3, $cat_id );
