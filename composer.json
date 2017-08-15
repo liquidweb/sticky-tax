@@ -1,0 +1,19 @@
+{
+    "name": "liquidweb/sticky-tax",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Liquid Web",
+            "email": "wordpress@liquidweb.com",
+            "homepage": "https://www.liquidweb.com"
+        },
+        {
+            "name": "Steve Grunwell",
+            "homepage": "https://stevegrunwell.com"
+        }
+    ],
+    "require-dev": {
+        "stevegrunwell/wp-enforcer": "^0.5.0"
+    }
+}
