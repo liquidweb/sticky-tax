@@ -91,21 +91,24 @@ function render_meta_box( $post, $meta_box ) {
 	}
 ?>
 
-	<select name="sticky-tax-term-id[]" class="regular-text" multiple>
-		<?php foreach ( $options as $group => $opts ) : ?>
-			<optgroup label="<?php echo esc_attr( $group ); ?>">
-				<?php foreach ( $opts as $id => $label ) : ?>
+	<label for="sticky-tax-term-id" class="screen-reader-text"><?php esc_html_e( 'Sticky terms', 'sticky-tax' ); ?></label>
+	<p>
+		<select id="sticky-tax-term-id" name="sticky-tax-term-id[]" class="regular-text" multiple>
+			<?php foreach ( $options as $group => $opts ) : ?>
+				<optgroup label="<?php echo esc_attr( $group ); ?>">
+					<?php foreach ( $opts as $id => $label ) : ?>
 
-					<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>>
-						<?php echo esc_html( $label ); ?>
-					</option>
+						<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>>
+							<?php echo esc_html( $label ); ?>
+						</option>
 
-				<?php endforeach; ?>
-			</optgroup>
-		<?php endforeach; ?>
-	</select>
+					<?php endforeach; ?>
+				</optgroup>
+			<?php endforeach; ?>
+		</select>
+	</p>
 
-	<p><?php esc_html_e( '"Stick" this post to the top of a term archive.', 'sticky-tax' ); ?></p>
+	<p class="description"><?php esc_html_e( '"Stick" this post to the top of a term archive.', 'sticky-tax' ); ?></p>
 
 <?php
 	wp_nonce_field( 'sticky-tax', 'sticky-tax-nonce' );
