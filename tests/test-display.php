@@ -23,6 +23,37 @@ class DisplayTest extends WP_UnitTestCase {
 		$this->assertEquals( [ $sticky_id ], Display\get_sticky_posts_for_term( $cat_id ) );
 	}
 
+	public function test_get_sticky_posts_for_term_caches_results() {
+		$cat_id    = self::factory()->category->create();
+		$post_ids  = $this->create_posts_and_assign_to_category( 3, $cat_id );
+		$sticky_id = $post_ids[1];
+
+		Meta\sticky_post_for_term( $sticky_id, $cat_id );
+
+		$this->assertEmpty( wp_cache_get( 'term_' . $cat_id, 'sticky-tax' ), 'Expected empty cache to start.' );
+
+		Display\get_sticky_posts_for_term( $cat_id );
+
+		$this->assertEquals(
+			[ $sticky_id ],
+			wp_cache_get( 'term_' . $cat_id, 'sticky-tax' ),
+			'get_sticky_posts_for_term() doesn\'t appear to be populating the cache.'
+		);
+	}
+
+	public function test_get_sticky_posts_for_term_pulls_from_cache() {
+		$cat_id    = self::factory()->category->create();
+		$post_id   = uniqid();
+
+		wp_cache_set( 'term_' . $cat_id, [ $post_id ], 'sticky-tax', 0 );
+
+		$this->assertEquals(
+			[ $post_id ],
+			Display\get_sticky_posts_for_term( $cat_id ),
+			'get_sticky_posts_for_term() should be reading from the primed cache.'
+		);
+	}
+
 	public function test_get_sticky_posts_for_term_filters_results() {
 		$cat_id = self::factory()->category->create();
 		$random = mt_rand( 1, 9999 );
@@ -174,6 +205,46 @@ class DisplayTest extends WP_UnitTestCase {
 			'front page' => [ 'is_category', 'is_paged' ],
 			'search'     => [ 'is_search' ],
 		];
+	}
+
+	public function test_append_sticky_class() {
+		$cat_id  = self::factory()->category->create();
+		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
+		$post_id = array_shift( $post_id );
+
+		$this->go_to( get_term_link( $cat_id, 'category' ) );
+		$this->assertNotContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		$this->go_to( get_term_link( $cat_id, 'category' ) );
+		$this->assertContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+	}
+
+	public function test_append_sticky_class_only_applies_on_term_page() {
+		$cat_id  = self::factory()->category->create();
+		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
+		$post_id = array_shift( $post_id );
+
+		$this->go_to( home_url() );
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		$this->assertNotContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+	}
+
+	public function test_append_sticky_class_is_applied_via_filter() {
+		$cat_id  = self::factory()->category->create();
+		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
+		$post_id = array_shift( $post_id );
+
+		$this->go_to( get_term_link( $cat_id, 'category' ) );
+		$this->assertNotContains( 'sticky-tax', get_post_class( null, $post_id ) );
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		$this->go_to( get_term_link( $cat_id, 'category' ) );
+		$this->assertContains( 'sticky-tax', get_post_class( null, $post_id ) );
 	}
 
 	/**
