@@ -248,9 +248,10 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertEquals( '0.0.7', wp_styles()->registered['select2']->ver );
 	}
 
-	public function test_register_scripts_includes_inline_init_script() {
+	public function test_register_scripts_includes_inline_scripts_styles() {
 		Meta\register_scripts( 'post.php' );
 
 		$this->assertNotEmpty( wp_scripts()->registered['select2']->extra['after'] );
+		$this->assertNotEmpty( wp_styles()->registered['select2']->extra['after'] );
 	}
 }
