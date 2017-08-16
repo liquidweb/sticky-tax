@@ -24,6 +24,14 @@
 		<exclude-pattern>sticky-tax.php</exclude-pattern>
 	</rule>
 
+	<!-- Inline comments for unit tests aren't required as strictly. -->
+	<rule ref="Squiz.Commenting">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Commenting">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
 	<rule ref="WordPress-Extra" />
 	<rule ref="WordPress-Docs" />
 </ruleset>
