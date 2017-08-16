@@ -97,5 +97,9 @@ function save_post( $post_id ) {
 		return;
 	}
 
+	// Remove old entries.
+	delete_post_meta( $post_id, '_sticky_tax' );
+
+	// Save new sticky assignments.
 	sticky_post_for_term( $post_id, (int) $_POST['sticky-tax-term-id'] );
 }

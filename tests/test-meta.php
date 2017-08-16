@@ -162,4 +162,22 @@ class MetaTest extends WP_UnitTestCase {
 
 		$this->assertEmpty( get_post_meta( $post_id, '_sticky_tax' ) );
 	}
+
+	public function test_save_post_clears_previous_values() {
+		$post_id = $this->factory()->post->create();
+		$old_cat = self::factory()->category->create();
+		$cat_id  = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => $cat_id,
+		];
+
+		// Previously, this post was sticky in $old_cat.
+		Meta\sticky_post_for_term( $post_id, $old_cat );
+
+		// After saving the post, only the new cat should be set.
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
 }
