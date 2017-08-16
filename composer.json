@@ -16,7 +16,7 @@
     ],
     "support": {
         "issues": "https://github.com/liquidweb/sticky-tax/issues",
-        "source": "https://github.com/liquidweb/sticky-tax",
+        "source": "https://github.com/liquidweb/sticky-tax"
     },
     "require-dev": {
         "stevegrunwell/wp-enforcer": "^0.5.0"
