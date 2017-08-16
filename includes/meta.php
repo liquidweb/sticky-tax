@@ -137,7 +137,7 @@ function save_post( $post_id ) {
 	$existing_meta = array_map( 'intval', get_post_meta( $post_id, '_sticky_tax' ) );
 
 	// Return early if there are no changes.
-	if ( empty( array_diff( $new_meta, $existing_meta ) ) ) {
+	if ( ! empty( $existing_meta ) && $existing_meta === $new_meta ) {
 		return;
 	}
 

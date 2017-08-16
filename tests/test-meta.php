@@ -180,4 +180,24 @@ class MetaTest extends WP_UnitTestCase {
 
 		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
 	}
+
+	public function test_save_post_handles_diffs() {
+		$post_id = $this->factory()->post->create();
+		$cat1    = self::factory()->category->create();
+		$cat2    = self::factory()->category->create();
+		$cat3    = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ $cat2 ],
+		];
+
+		// Previously, this post was sticky in $old_cat.
+		Meta\sticky_post_for_term( $post_id, $cat1 );
+		Meta\sticky_post_for_term( $post_id, $cat2 );
+
+		// After saving the post, only the new cat should be set.
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $cat2 ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
 }
