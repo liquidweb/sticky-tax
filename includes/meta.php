@@ -28,3 +28,56 @@ function sticky_post_for_term( $post_id, $term_id ) {
 
 	return (bool) add_post_meta( $post_id, '_sticky_tax', (int) $term_id );
 }
+
+/**
+ * Register the Sticky meta box on applicable post types.
+ */
+function register_meta_boxes() {
+	$taxonomies = array_keys( get_taxonomies( [
+		'public' => true,
+	] ) );
+
+	/**
+	 * Retrieve an array of taxonomies that may possess sticky posts.
+	 *
+	 * @param array $taxonomies Taxonomies for which posts should be able to stick.
+	 */
+	$taxonomies = apply_filters( 'stickytax_taxonomies', $taxonomies );
+
+	// If there are no taxonomies eligible for Sticky Tax, return early.
+	if ( empty( $taxonomies ) ) {
+		return;
+	}
+
+	/**
+	 * Retrieve an array of post types that should be eligible for taxonomy-based stickiness.
+	 *
+	 * @param array $post_types Post types that should be able to use Sticky Tax.
+	 */
+	$post_types = apply_filters( 'stickytax_post_types', array( 'post' ) );
+
+	add_meta_box(
+		'sticky-tax',
+		_x( 'Sticky', 'meta box title', 'sticky-tax' ),
+		__NAMESPACE__ . '\render_meta_box',
+		$post_types,
+		'side',
+		'default',
+		$taxonomies
+	);
+}
+add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
+
+/**
+ * Render the Sticky meta box on a post edit screen.
+ *
+ * @param WP_Post $post The current post object.
+ */
+function render_meta_box( $post ) {
+
+?>
+
+	<p><?php esc_html_e( '"Stick" this post to the top of a term archive.', 'sticky-tax' ); ?></p>
+
+<?php
+}

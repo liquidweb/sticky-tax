@@ -12,6 +12,15 @@ use LiquidWeb\StickyTax\Meta as Meta;
  */
 class MetaTest extends WP_UnitTestCase {
 
+	/**
+	 * @after
+	 */
+	public function reset_meta_boxes() {
+		global $wp_meta_boxes;
+
+		$wp_meta_boxes['post']['side']['default'] = [];
+	}
+
 	public function test_can_make_post_sticky_for_term() {
 		$post_id = $this->factory()->post->create();
 		$cat_obj = self::factory()->category->create_and_get();
@@ -52,5 +61,61 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertFalse( Meta\sticky_post_for_term( $post_id, $cat_id ) );
 
 		$this->assertCount( 1, get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_register_meta_boxes_applies_taxonomy_filter() {
+		global $wp_meta_boxes;
+
+		$tax = uniqid();
+
+		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) use ( $tax ) {
+			$taxonomies[] = $tax;
+
+			return $taxonomies;
+		} );
+
+		Meta\register_meta_boxes();
+
+		$this->assertContains(
+			$tax,
+			$wp_meta_boxes['post']['side']['default']['sticky-tax']['args'],
+			'The stickytax_taxonomies filter should be applied when registering meta boxes.'
+		);
+	}
+
+	public function test_register_meta_boxes_applies_post_type_filter() {
+		global $wp_meta_boxes;
+
+		$cpt = uniqid();
+
+		add_filter( 'stickytax_post_types', function ( $post_types ) use ( $cpt ) {
+			$post_types[] = $cpt;
+
+			return $post_types;
+		} );
+
+		Meta\register_meta_boxes();
+
+		$this->assertArrayHasKey(
+			'sticky-tax',
+			$wp_meta_boxes[ $cpt ]['side']['default'],
+			'The stickytax_post_types filter should be applied when registering meta boxes.'
+		);
+	}
+
+	public function test_register_meta_boxes_returns_early_if_no_eligible_taxonomies_were_found() {
+		global $wp_meta_boxes;
+
+		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) {
+			return [];
+		} );
+
+		Meta\register_meta_boxes();
+
+		$this->assertArrayNotHasKey(
+			'sticky-tax',
+			$wp_meta_boxes['post']['side']['default'],
+			'If there are no taxonomies to stick to, the meta box should not be registered.'
+		);
 	}
 }
