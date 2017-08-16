@@ -113,7 +113,7 @@ function render_meta_box( $post, $meta_box ) {
 		</select>
 	</p>
 
-	<p class="description"><?php esc_html_e( '"Stick" this post to the top of a term archive.', 'sticky-tax' ); ?></p>
+	<p class="description"><?php esc_html_e( '"Stick" this post to the top of the archive pages for the selected term(s)', 'sticky-tax' ); ?></p>
 
 <?php
 	wp_nonce_field( 'sticky-tax', 'sticky-tax-nonce' );
