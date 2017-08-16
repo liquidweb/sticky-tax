@@ -77,6 +77,7 @@ add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
 function render_meta_box( $post, $meta_box ) {
 	$selected = array_map( 'intval', get_post_meta( $post->ID, '_sticky_tax' ) );
 	$options  = array();
+	$size     = 0;
 
 	foreach ( $meta_box['args'] as $taxonomy ) {
 		$terms = get_terms( [
@@ -87,13 +88,17 @@ function render_meta_box( $post, $meta_box ) {
 		if ( ! empty( $terms ) ) {
 			$tax                    = get_taxonomy( $taxonomy );
 			$options[ $tax->label ] = $terms;
+			$size += count( $terms ) + 1;
 		}
 	}
+
+	// Limit the <select> size.
+	$size = 10 > $size ? $size : 10;
 ?>
 
 	<label for="sticky-tax-term-id" class="screen-reader-text"><?php esc_html_e( 'Sticky terms', 'sticky-tax' ); ?></label>
 	<p>
-		<select id="sticky-tax-term-id" name="sticky-tax-term-id[]" class="regular-text" multiple>
+		<select id="sticky-tax-term-id" name="sticky-tax-term-id[]" class="regular-text" size="<?php echo esc_attr( $size ); ?>" multiple>
 			<?php foreach ( $options as $group => $opts ) : ?>
 				<optgroup label="<?php echo esc_attr( $group ); ?>">
 					<?php foreach ( $opts as $id => $label ) : ?>
