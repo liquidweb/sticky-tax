@@ -19,6 +19,11 @@
 		<severity>0</severity>
 	</rule>
 
+	<!-- Don't complain about missing file doc comments for the main plugin file. -->
+	<rule ref="Squiz.Commenting.FileComment.Missing">
+		<exclude-pattern>sticky-tax.php</exclude-pattern>
+	</rule>
+
 	<rule ref="WordPress-Extra" />
 	<rule ref="WordPress-Docs" />
 </ruleset>
