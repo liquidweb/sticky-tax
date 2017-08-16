@@ -190,6 +190,18 @@ class DisplayTest extends WP_UnitTestCase {
 		$this->assertContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
 	}
 
+	public function test_append_sticky_class_only_applies_on_term_page() {
+		$cat_id  = self::factory()->category->create();
+		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
+		$post_id = array_shift( $post_id );
+
+		$this->go_to( home_url() );
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		$this->assertNotContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+	}
+
 	public function test_append_sticky_class_is_applied_via_filter() {
 		$cat_id  = self::factory()->category->create();
 		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
