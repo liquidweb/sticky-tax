@@ -195,6 +195,9 @@ function register_scripts( $hook ) {
 		);
 	}
 
+	// Add the inline script necessary to get Select2 working for the meta box.
+	wp_add_inline_script( 'select2', "jQuery(document.getElementById('sticky-tax-term-id')).select2();" );
+
 	wp_enqueue_script( 'select2' );
 	wp_enqueue_style( 'select2' );
 }
