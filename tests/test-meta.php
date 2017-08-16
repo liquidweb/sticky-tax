@@ -196,7 +196,7 @@ class MetaTest extends WP_UnitTestCase {
 			'sticky-tax-term-id' => [ $cat2 ],
 		];
 
-		// Previously, this post was sticky in $old_cat.
+		// Previously, this post was sticky in $cat1 and $cat2.
 		Meta\sticky_post_for_term( $post_id, $cat1 );
 		Meta\sticky_post_for_term( $post_id, $cat2 );
 
@@ -204,6 +204,34 @@ class MetaTest extends WP_UnitTestCase {
 		Meta\save_post( $post_id );
 
 		$this->assertEquals( [ $cat2 ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_clears_caches() {
+		$post_id = $this->factory()->post->create();
+		$cat1    = self::factory()->category->create();
+		$cat2    = self::factory()->category->create();
+		$cat3    = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ $cat2 ],
+		];
+
+		// Prime the caches.
+		wp_cache_set( 'term_' . $cat1, [ uniqid() ], 'sticky-tax' );
+		wp_cache_set( 'term_' . $cat2, [ uniqid() ], 'sticky-tax' );
+		wp_cache_set( 'term_' . $cat3, [ uniqid() ], 'sticky-tax' );
+
+		// Previously, this post was sticky in $cat1.
+		Meta\sticky_post_for_term( $post_id, $cat1 );
+
+		Meta\save_post( $post_id );
+
+		// Since $cat1 and $cat2 have changed, their caches should be purged.
+		$this->assertEmpty( wp_cache_get( 'term_' . $cat1, 'sticky-tax' ) );
+		$this->assertEmpty( wp_cache_get( 'term_' . $cat2, 'sticky-tax' ) );
+
+		// $cat3 was not touched, so its cache should persist.
+		$this->assertNotEmpty( wp_cache_get( 'term_' . $cat3, 'sticky-tax' ) );
 	}
 
 	/**

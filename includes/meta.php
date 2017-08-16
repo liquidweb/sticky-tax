@@ -146,6 +146,13 @@ function save_post( $post_id ) {
 	// Save new sticky assignments.
 	foreach ( $_POST['sticky-tax-term-id'] as $term_id ) {
 		sticky_post_for_term( $post_id, (int) $term_id );
+
+		wp_cache_delete( 'term_' . (int) $term_id, 'sticky-tax' );
+	}
+
+	// Clear caches for anything that's changed.
+	foreach ( array_diff( $existing_meta, $new_meta ) as $term_id ) {
+		wp_cache_delete( 'term_' . (int) $term_id, 'sticky-tax' );
 	}
 }
 add_action( 'save_post', __NAMESPACE__ . '\save_post' );
