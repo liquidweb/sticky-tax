@@ -17,17 +17,26 @@ use WP_Query;
  * @return array An array of post IDs.
  */
 function get_sticky_posts_for_term( $term_id ) {
-	$query = new WP_Query( [
-		'update_term_meta_cache' => false,
-		'fields'                 => 'ids',
-		'no_found_rows'          => true,
-		'meta_query' => [
-			[
-				'key'   => '_sticky_tax',
-				'value' => $term_id,
+	$cache_key = 'term_' . (int) $term_id;
+	$found     = false;
+	$post_ids  = wp_cache_get( $cache_key, 'sticky-tax', false, $found );
+
+	if ( false === $found ) {
+		$query = new WP_Query( [
+			'update_term_meta_cache' => false,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'meta_query' => [
+				[
+					'key'   => '_sticky_tax',
+					'value' => $term_id,
+				],
 			],
-		],
-	] );
+		] );
+		$post_ids = $query->posts;
+
+		wp_cache_set( $cache_key, $post_ids, 'sticky-tax' );
+	}
 
 	/**
 	 * Modify the post IDs that are sticky for the given term ID.
@@ -35,7 +44,7 @@ function get_sticky_posts_for_term( $term_id ) {
 	 * @param array $post_ids Array of sticky post IDs.
 	 * @param int   $term_id  The current term ID.
 	 */
-	$post_ids = apply_filters( 'stickytax_get_sticky_posts_for_term', $query->posts, $term_id );
+	$post_ids = apply_filters( 'stickytax_get_sticky_posts_for_term', $post_ids, $term_id );
 
 	return $post_ids;
 }
