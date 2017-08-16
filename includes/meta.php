@@ -80,4 +80,22 @@ function render_meta_box( $post ) {
 	<p><?php esc_html_e( '"Stick" this post to the top of a term archive.', 'sticky-tax' ); ?></p>
 
 <?php
+	wp_nonce_field( 'sticky-tax', 'sticky-tax-nonce' );
+}
+
+/**
+ * Save the settings within the Sticky meta box.
+ *
+ * @param int $post_id The post being saved.
+ */
+function save_post( $post_id ) {
+	if (
+		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+		|| ! isset( $_POST['sticky-tax-nonce'], $_POST['sticky-tax-term-id'] )
+		|| ! wp_verify_nonce( $_POST['sticky-tax-nonce'], 'sticky-tax' )
+	) {
+		return;
+	}
+
+	sticky_post_for_term( $post_id, (int) $_POST['sticky-tax-term-id'] );
 }

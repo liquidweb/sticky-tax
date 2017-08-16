@@ -118,4 +118,48 @@ class MetaTest extends WP_UnitTestCase {
 			'If there are no taxonomies to stick to, the meta box should not be registered.'
 		);
 	}
+
+	public function test_save_post() {
+		$post_id = $this->factory()->post->create();
+		$cat_id  = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => $cat_id,
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_verifies_nonce() {
+		$post_id = $this->factory()->post->create();
+		$cat_id  = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => uniqid(),
+			'sticky-tax-term-id' => $cat_id,
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty( get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 */
+	public function test_save_post_does_not_execute_on_autosave() {
+		$post_id = $this->factory()->post->create();
+		$cat_id  = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => $cat_id,
+		];
+
+		define( 'DOING_AUTOSAVE', true );
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty( get_post_meta( $post_id, '_sticky_tax' ) );
+	}
 }
