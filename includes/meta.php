@@ -150,3 +150,52 @@ function save_post( $post_id ) {
 	}
 }
 add_action( 'save_post', __NAMESPACE__ . '\save_post' );
+
+/**
+ * Register the Select2 scripts used by the meta box.
+ *
+ * As Select2 is a popular library, we'll first check to see if another plugin has registered it
+ * and, if so, use that instance instead.
+ *
+ * @link https://select2.github.io/
+ *
+ * @param string $hook The current page being loaded.
+ */
+function register_scripts( $hook ) {
+	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+		return;
+	}
+
+	// Current version of Select2.
+	$version = '4.0.3';
+
+	// Register the script if it hasn't already been.
+	if ( ! wp_script_is( 'select2', 'registered' ) ) {
+		wp_register_script(
+			'select2',
+			sprintf( 'https://cdnjs.cloudflare.com/ajax/libs/select2/%s/js/select2.min.js', $version ),
+			[ 'jquery' ],
+			$version,
+			true
+		);
+
+	} else {
+
+		// If we need to register the stylesheet, we want it to match the JS version.
+		$version = wp_scripts()->registered['select2']->ver;
+	}
+
+	// Register the stylesheet if necessary, matching the version used for the script.
+	if ( ! wp_style_is( 'select2', 'registered' ) ) {
+		wp_register_style(
+			'select2',
+			sprintf( 'https://cdnjs.cloudflare.com/ajax/libs/select2/%s/css/select2.min.css', $version ),
+			null,
+			$version
+		);
+	}
+
+	wp_enqueue_script( 'select2' );
+	wp_enqueue_style( 'select2' );
+}
+add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_scripts' );

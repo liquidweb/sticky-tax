@@ -19,6 +19,11 @@ class MetaTest extends WP_UnitTestCase {
 		global $wp_meta_boxes;
 
 		$wp_meta_boxes['post']['side']['default'] = [];
+
+		wp_dequeue_script( 'select2' );
+		wp_dequeue_style( 'select2' );
+		wp_deregister_script( 'select2' );
+		wp_deregister_style( 'select2' );
 	}
 
 	public function test_can_make_post_sticky_for_term() {
@@ -199,5 +204,47 @@ class MetaTest extends WP_UnitTestCase {
 		Meta\save_post( $post_id );
 
 		$this->assertEquals( [ $cat2 ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	/**
+	 * @dataProvider register_script_hooks_provider()
+	 */
+	public function test_register_scripts( $hook, $expected ) {
+		$this->assertFalse( wp_script_is( 'select2', 'registered' ) );
+		$this->assertFalse( wp_style_is( 'select2', 'registered' ) );
+
+		Meta\register_scripts( $hook );
+
+		$this->assertEquals( $expected, wp_script_is( 'select2', 'enqueued' ) );
+		$this->assertEquals( $expected, wp_style_is( 'select2', 'enqueued' ) );
+	}
+
+	public function register_script_hooks_provider() {
+		return [
+			'post edit screen' => [ 'post.php', true ],
+			'new post screen'  => [ 'post-new.php', true ],
+			'admin index page' => [ 'index.php', false ],
+			'post list table'  => [ 'edit.php', false ],
+		];
+	}
+
+	public function test_register_scripts_checks_for_existing_scripts() {
+		wp_register_script( 'select2', 'https://example.com', null, '0.0.7', true );
+		wp_register_style( 'select2', 'https://example.com', null, '0.0.7', true );
+
+		Meta\register_scripts( 'post.php' );
+
+		$this->assertEquals( '0.0.7', wp_scripts()->registered['select2']->ver );
+		$this->assertEquals( '0.0.7', wp_styles()->registered['select2']->ver );
+	}
+
+	public function test_register_scripts_will_register_style_if_script_is_missing() {
+		wp_register_script( 'select2', 'https://example.com', null, '0.0.7', true );
+
+		Meta\register_scripts( 'post.php' );
+
+		$this->assertTrue( wp_style_is( 'select2', 'enqueued' ) );
+		$this->assertEquals( '0.0.7', wp_scripts()->registered['select2']->ver );
+		$this->assertEquals( '0.0.7', wp_styles()->registered['select2']->ver );
 	}
 }
