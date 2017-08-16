@@ -71,11 +71,39 @@ add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
 /**
  * Render the Sticky meta box on a post edit screen.
  *
- * @param WP_Post $post The current post object.
+ * @param WP_Post $post     The current post object.
+ * @param array   $meta_box The settings for the meta box, including an 'args' key.
  */
-function render_meta_box( $post ) {
+function render_meta_box( $post, $meta_box ) {
+	$selected = array_map( 'intval', get_post_meta( $post->ID, '_sticky_tax' ) );
+	$options  = array();
 
+	foreach ( $meta_box['args'] as $taxonomy ) {
+		$terms = get_terms( [
+			'taxonomy' => $taxonomy,
+			'fields'   => 'id=>name',
+		] );
+
+		if ( ! empty( $terms ) ) {
+			$tax                    = get_taxonomy( $taxonomy );
+			$options[ $tax->label ] = $terms;
+		}
+	}
 ?>
+
+	<select name="sticky-tax-term-id[]" class="regular-text" multiple>
+		<?php foreach ( $options as $group => $opts ) : ?>
+			<optgroup label="<?php echo esc_attr( $group ); ?>">
+				<?php foreach ( $opts as $id => $label ) : ?>
+
+					<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>>
+						<?php echo esc_html( $label ); ?>
+					</option>
+
+				<?php endforeach; ?>
+			</optgroup>
+		<?php endforeach; ?>
+	</select>
 
 	<p><?php esc_html_e( '"Stick" this post to the top of a term archive.', 'sticky-tax' ); ?></p>
 
@@ -97,9 +125,20 @@ function save_post( $post_id ) {
 		return;
 	}
 
+	$new_meta      = array_map( 'intval', (array) $_POST['sticky-tax-term-id'] );
+	$existing_meta = array_map( 'intval', get_post_meta( $post_id, '_sticky_tax' ) );
+
+	// Return early if there are no changes.
+	if ( empty( array_diff( $new_meta, $existing_meta ) ) ) {
+		return;
+	}
+
 	// Remove old entries.
 	delete_post_meta( $post_id, '_sticky_tax' );
 
 	// Save new sticky assignments.
-	sticky_post_for_term( $post_id, (int) $_POST['sticky-tax-term-id'] );
+	foreach ( $_POST['sticky-tax-term-id'] as $term_id ) {
+		sticky_post_for_term( $post_id, (int) $term_id );
+	}
 }
+add_action( 'save_post', __NAMESPACE__ . '\save_post' );

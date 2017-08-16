@@ -124,7 +124,7 @@ class MetaTest extends WP_UnitTestCase {
 		$cat_id  = self::factory()->category->create();
 		$_POST   = [
 			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
-			'sticky-tax-term-id' => $cat_id,
+			'sticky-tax-term-id' => [ $cat_id ],
 		];
 
 		Meta\save_post( $post_id );
@@ -137,7 +137,7 @@ class MetaTest extends WP_UnitTestCase {
 		$cat_id  = self::factory()->category->create();
 		$_POST   = [
 			'sticky-tax-nonce'   => uniqid(),
-			'sticky-tax-term-id' => $cat_id,
+			'sticky-tax-term-id' => [ $cat_id ],
 		];
 
 		Meta\save_post( $post_id );
@@ -169,7 +169,7 @@ class MetaTest extends WP_UnitTestCase {
 		$cat_id  = self::factory()->category->create();
 		$_POST   = [
 			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
-			'sticky-tax-term-id' => $cat_id,
+			'sticky-tax-term-id' => [ $cat_id ],
 		];
 
 		// Previously, this post was sticky in $old_cat.
