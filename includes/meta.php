@@ -28,3 +28,125 @@ function sticky_post_for_term( $post_id, $term_id ) {
 
 	return (bool) add_post_meta( $post_id, '_sticky_tax', (int) $term_id );
 }
+
+/**
+ * Register the Sticky meta box on applicable post types.
+ */
+function register_meta_boxes() {
+	$taxonomies = array_keys( get_taxonomies( [
+		'public' => true,
+	] ) );
+
+	/**
+	 * Retrieve an array of taxonomies that may possess sticky posts.
+	 *
+	 * @param array $taxonomies Taxonomies for which posts should be able to stick.
+	 */
+	$taxonomies = apply_filters( 'stickytax_taxonomies', $taxonomies );
+
+	// If there are no taxonomies eligible for Sticky Tax, return early.
+	if ( empty( $taxonomies ) ) {
+		return;
+	}
+
+	/**
+	 * Retrieve an array of post types that should be eligible for taxonomy-based stickiness.
+	 *
+	 * @param array $post_types Post types that should be able to use Sticky Tax.
+	 */
+	$post_types = apply_filters( 'stickytax_post_types', array( 'post' ) );
+
+	add_meta_box(
+		'sticky-tax',
+		_x( 'Sticky', 'meta box title', 'sticky-tax' ),
+		__NAMESPACE__ . '\render_meta_box',
+		$post_types,
+		'side',
+		'default',
+		$taxonomies
+	);
+}
+add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
+
+/**
+ * Render the Sticky meta box on a post edit screen.
+ *
+ * @param WP_Post $post     The current post object.
+ * @param array   $meta_box The settings for the meta box, including an 'args' key.
+ */
+function render_meta_box( $post, $meta_box ) {
+	$selected = array_map( 'intval', get_post_meta( $post->ID, '_sticky_tax' ) );
+	$options  = array();
+	$size     = 0;
+
+	foreach ( $meta_box['args'] as $taxonomy ) {
+		$terms = get_terms( [
+			'taxonomy' => $taxonomy,
+			'fields'   => 'id=>name',
+		] );
+
+		if ( ! empty( $terms ) ) {
+			$tax                    = get_taxonomy( $taxonomy );
+			$options[ $tax->label ] = $terms;
+			$size += count( $terms ) + 1;
+		}
+	}
+
+	// Limit the <select> size.
+	$size = 10 > $size ? $size : 10;
+?>
+
+	<label for="sticky-tax-term-id" class="screen-reader-text"><?php esc_html_e( 'Sticky terms', 'sticky-tax' ); ?></label>
+	<p>
+		<select id="sticky-tax-term-id" name="sticky-tax-term-id[]" class="regular-text" size="<?php echo esc_attr( $size ); ?>" multiple>
+			<?php foreach ( $options as $group => $opts ) : ?>
+				<optgroup label="<?php echo esc_attr( $group ); ?>">
+					<?php foreach ( $opts as $id => $label ) : ?>
+
+						<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>>
+							<?php echo esc_html( $label ); ?>
+						</option>
+
+					<?php endforeach; ?>
+				</optgroup>
+			<?php endforeach; ?>
+		</select>
+	</p>
+
+	<p class="description"><?php esc_html_e( '"Stick" this post to the top of the archive pages for the selected term(s)', 'sticky-tax' ); ?></p>
+
+<?php
+	wp_nonce_field( 'sticky-tax', 'sticky-tax-nonce' );
+}
+
+/**
+ * Save the settings within the Sticky meta box.
+ *
+ * @param int $post_id The post being saved.
+ */
+function save_post( $post_id ) {
+	if (
+		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+		|| ! isset( $_POST['sticky-tax-nonce'], $_POST['sticky-tax-term-id'] )
+		|| ! wp_verify_nonce( $_POST['sticky-tax-nonce'], 'sticky-tax' )
+	) {
+		return;
+	}
+
+	$new_meta      = array_map( 'intval', (array) $_POST['sticky-tax-term-id'] );
+	$existing_meta = array_map( 'intval', get_post_meta( $post_id, '_sticky_tax' ) );
+
+	// Return early if there are no changes.
+	if ( empty( array_diff( $new_meta, $existing_meta ) ) ) {
+		return;
+	}
+
+	// Remove old entries.
+	delete_post_meta( $post_id, '_sticky_tax' );
+
+	// Save new sticky assignments.
+	foreach ( $_POST['sticky-tax-term-id'] as $term_id ) {
+		sticky_post_for_term( $post_id, (int) $term_id );
+	}
+}
+add_action( 'save_post', __NAMESPACE__ . '\save_post' );
