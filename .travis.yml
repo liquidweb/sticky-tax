@@ -33,7 +33,6 @@ before_script:
     else
       composer global require "phpunit/phpunit=5.7.*"
     fi
-  - ./vendor/bin/wp-enforcer
 
 script:
   - WP_MULTISITE=0 phpunit
