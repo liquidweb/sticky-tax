@@ -21,21 +21,21 @@ matrix:
     - php: 7.0
       env: WP_VERSION=trunk
 
+install:
+  - composer install --prefer-source
+  - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
+
 before_script:
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - |
-    if [[ ! -z "$WP_VERSION" ]] ; then
-      bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
-      if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
-        composer global require "phpunit/phpunit=4.8.*"
-      else
-        composer global require "phpunit/phpunit=5.7.*"
-      fi
+    if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then
+      composer global require "phpunit/phpunit=4.8.*"
+    else
+      composer global require "phpunit/phpunit=5.7.*"
     fi
+  - ./vendor/bin/wp-enforcer
 
 script:
-  - |
-    if [[ ! -z "$WP_VERSION" ]] ; then
-      phpunit
-      WP_MULTISITE=1 phpunit
-    fi
+  - WP_MULTISITE=0 phpunit
+  - WP_MULTISITE=1 phpunit
+  - ./vendor/bin/phpcs --standard=phpcs.xml ./
