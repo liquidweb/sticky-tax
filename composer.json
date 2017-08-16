@@ -1,5 +1,6 @@
 {
     "name": "liquidweb/sticky-tax",
+    "description": "Make posts sticky within the context of a single category, tag, or custom taxonomy term.",
     "type": "wordpress-plugin",
     "license": "MIT",
     "authors": [
