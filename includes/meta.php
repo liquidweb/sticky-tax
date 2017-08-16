@@ -81,8 +81,9 @@ function render_meta_box( $post, $meta_box ) {
 
 	foreach ( $meta_box['args'] as $taxonomy ) {
 		$terms = get_terms( [
-			'taxonomy' => $taxonomy,
-			'fields'   => 'id=>name',
+			'taxonomy'   => $taxonomy,
+			'fields'     => 'id=>name',
+			'hide_empty' => false,
 		] );
 
 		if ( ! empty( $terms ) ) {
@@ -103,9 +104,7 @@ function render_meta_box( $post, $meta_box ) {
 				<optgroup label="<?php echo esc_attr( $group ); ?>">
 					<?php foreach ( $opts as $id => $label ) : ?>
 
-						<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>>
-							<?php echo esc_html( $label ); ?>
-						</option>
+						<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>><?php echo esc_html( $label ); ?></option>
 
 					<?php endforeach; ?>
 				</optgroup>
