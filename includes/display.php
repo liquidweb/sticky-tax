@@ -73,3 +73,24 @@ function inject_orderby_clause( $orderby, $query ) {
 	);
 }
 add_filter( 'posts_orderby', __NAMESPACE__ . '\inject_orderby_clause', 10, 2 );
+
+/**
+ * When the post is acting as sticky, add .sticky-tax to it for easy styling.
+ *
+ * @param array $classes An array of post classes.
+ * @param array $class   An array of additional classes added to the post.
+ * @param int   $post_id The post ID.
+ * @return array The filtered array of post classes.
+ */
+function append_sticky_class( $classes, $class, $post_id ) {
+	if ( ! is_category() && ! is_tag() && ! is_tax() ) {
+		return $classes;
+	}
+
+	if ( in_array( $post_id, get_sticky_posts_for_term( get_queried_object_id() ), true ) ) {
+		$classes[] = 'sticky-tax';
+	}
+
+	return $classes;
+}
+add_filter( 'post_class', __NAMESPACE__ . '\append_sticky_class', 10, 3 );

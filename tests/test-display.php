@@ -176,6 +176,34 @@ class DisplayTest extends WP_UnitTestCase {
 		];
 	}
 
+	public function test_append_sticky_class() {
+		$cat_id  = self::factory()->category->create();
+		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
+		$post_id = array_shift( $post_id );
+
+		$this->go_to( get_term_link( $cat_id, 'category' ) );
+
+		$this->assertNotContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		$this->assertContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+	}
+
+	public function test_append_sticky_class_is_applied_via_filter() {
+		$cat_id  = self::factory()->category->create();
+		$post_id = $this->create_posts_and_assign_to_category( 1, $cat_id );
+		$post_id = array_shift( $post_id );
+
+		$this->go_to( get_term_link( $cat_id, 'category' ) );
+
+		$this->assertNotContains( 'sticky-tax', get_post_class( null, $post_id ) );
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		$this->assertContains( 'sticky-tax', get_post_class( null, $post_id ) );
+	}
+
 	/**
 	 * Helper function to avoid declaring global PHP variables in the middle of a test method.
 	 *
