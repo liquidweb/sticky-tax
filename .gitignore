@@ -1,6 +1,7 @@
 .DS_Store
 Thumbs.db
 wp-cli.local.yml
+dist/
 node_modules/
 vendor
 *.sql
