@@ -11,4 +11,10 @@
 			<directory prefix="test-" suffix=".php">./tests/</directory>
 		</testsuite>
 	</testsuites>
+	<filter>
+		<whitelist>
+			<file>sticky-tax.php</file>
+			<directory suffix=".php">includes</directory>
+		</whitelist>
+	</filter>
 </phpunit>
