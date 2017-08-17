@@ -1,29 +1,29 @@
 {
-    "name": "liquidweb/sticky-tax",
-    "description": "Make posts sticky within the context of a single category, tag, or custom taxonomy term.",
-    "type": "wordpress-plugin",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Liquid Web",
-            "email": "wordpress@liquidweb.com",
-            "homepage": "https://www.liquidweb.com"
-        },
-        {
-            "name": "Steve Grunwell",
-            "homepage": "https://stevegrunwell.com"
-        }
-    ],
-    "support": {
-        "issues": "https://github.com/liquidweb/sticky-tax/issues",
-        "source": "https://github.com/liquidweb/sticky-tax"
+  "name": "liquidweb/sticky-tax",
+  "description": "Make posts sticky within the context of a single category, tag, or custom taxonomy term",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Liquid Web",
+      "email": "wordpress@liquidweb.com",
+      "homepage": "https://www.liquidweb.com"
     },
-    "require-dev": {
-        "stevegrunwell/wp-enforcer": "^0.5.0"
-    },
-    "scripts": {
-      "post-install-cmd": [
-        "wp-enforcer"
-      ]
+    {
+      "name": "Steve Grunwell",
+      "homepage": "https://stevegrunwell.com"
     }
+  ],
+  "support": {
+    "issues": "https://github.com/liquidweb/sticky-tax/issues",
+    "source": "https://github.com/liquidweb/sticky-tax"
+  },
+  "require-dev": {
+    "stevegrunwell/wp-enforcer": "^0.5.0"
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "wp-enforcer"
+    ]
+  }
 }
