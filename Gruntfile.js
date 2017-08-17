@@ -6,22 +6,19 @@ module.exports = function( grunt ) {
 
 		pkg: grunt.file.readJSON( 'package.json' ),
 
-		addtextdomain: {
-			options: {
-				textdomain: 'sticky-tax',
-			},
-			update_all_domains: {
-				options: {
-					updateDomains: true
-				},
+		copy: {
+			main: {
 				src: [
-					'*.php',
-					'**/*.php',
-					'!node_modules/**',
-					'!tests/**',
-					'!bin/**'
-				]
-			}
+					'includes/**',
+					'languages/**',
+					'composer.json',
+					'CHANGELOG.md',
+					'LICENSE.txt',
+					'readme.txt',
+					'sticky-tax.php'
+				],
+				dest: 'dist/'
+			},
 		},
 
 		makepot: {
@@ -41,7 +38,10 @@ module.exports = function( grunt ) {
 		},
 	} );
 
+	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-wp-i18n' );
+
+	grunt.registerTask( 'build', [ 'i18n', 'copy' ] );
 	grunt.registerTask( 'i18n', [ 'makepot' ] );
 
 	grunt.util.linefeed = '\n';
