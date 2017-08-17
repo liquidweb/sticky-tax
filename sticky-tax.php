@@ -15,5 +15,19 @@
  * @author  Liquid Web
  */
 
+namespace LiquidWeb\StickyTax;
+
 require __DIR__ . '/includes/display.php';
 require __DIR__ . '/includes/meta.php';
+
+/**
+ * Load the plugin text domain.
+ *
+ * This isn't explicitly required for WordPress 4.6+, but it's still a good practice.
+ *
+ * @link https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#loading-text-domain
+ */
+function load_textdomain() {
+	load_plugin_textdomain( 'sticky-tax', false, basename( __DIR__ ) . '/languages/' );
+}
+add_action( 'plugins_loaded', __NAMESPACE__ . '\load_textdomain' );
