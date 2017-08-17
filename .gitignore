@@ -3,6 +3,7 @@ Thumbs.db
 wp-cli.local.yml
 dist/
 node_modules/
+tests/coverage
 vendor
 *.sql
 *.tar.gz
