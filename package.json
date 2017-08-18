@@ -29,6 +29,6 @@
     "select2": "^4.0.3"
   },
   "scripts": {
-    "postinstall": "mkdir -p lib && cp -r node_modules/select2/dist ./lib/select2"
+    "postinstall": "mkdir -p lib/select2 && cp -r node_modules/select2/dist/* ./lib/select2"
   }
 }
