@@ -56,8 +56,6 @@ class MetaTest extends WP_UnitTestCase {
 	}
 
 	public function test_handles_multiple_calls_for_same_post_and_term() {
-		$this->markTestSkipped( 'Logic not yet implemented' );
-
 		$post_id = $this->factory()->post->create();
 		$cat_id  = self::factory()->category->create();
 
