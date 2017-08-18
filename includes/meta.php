@@ -179,23 +179,18 @@ function register_scripts( $hook ) {
 	if ( ! wp_script_is( 'select2', 'registered' ) ) {
 		wp_register_script(
 			'select2',
-			sprintf( 'https://cdnjs.cloudflare.com/ajax/libs/select2/%s/js/select2.min.js', $version ),
-			[ 'jquery' ],
+			STICKY_TAX_URL . 'lib/select2/js/select2.min.js',
+			array( 'jquery' ),
 			$version,
 			true
 		);
-
-	} else {
-
-		// If we need to register the stylesheet, we want it to match the JS version.
-		$version = wp_scripts()->registered['select2']->ver;
 	}
 
-	// Register the stylesheet if necessary, matching the version used for the script.
+	// Register the stylesheet, if necessary.
 	if ( ! wp_style_is( 'select2', 'registered' ) ) {
 		wp_register_style(
 			'select2',
-			sprintf( 'https://cdnjs.cloudflare.com/ajax/libs/select2/%s/css/select2.min.css', $version ),
+			STICKY_TAX_URL . 'lib/select2/css/select2.min.css',
 			null,
 			$version
 		);

@@ -20,6 +20,8 @@ namespace LiquidWeb\StickyTax;
 require __DIR__ . '/includes/display.php';
 require __DIR__ . '/includes/meta.php';
 
+define( 'STICKY_TAX_URL', plugins_url( '/', __FILE__ ) );
+
 /**
  * Load the plugin text domain.
  *
