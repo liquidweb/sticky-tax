@@ -134,10 +134,14 @@ function render_meta_box( $post, $meta_box ) {
 function save_post( $post_id ) {
 	if (
 		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-		|| ! isset( $_POST['sticky-tax-nonce'], $_POST['sticky-tax-term-id'] )
+		|| ! isset( $_POST['sticky-tax-nonce'] )
 		|| ! wp_verify_nonce( $_POST['sticky-tax-nonce'], 'sticky-tax' )
 	) {
 		return;
+	}
+
+	if ( ! isset( $_POST['sticky-tax-term-id'] ) ) {
+		$_POST['sticky-tax-term-id'] = array();
 	}
 
 	$new_meta      = array_map( 'intval', (array) $_POST['sticky-tax-term-id'] );

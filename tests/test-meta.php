@@ -174,6 +174,21 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
 	}
 
+	public function test_save_post_can_remove_all_terms() {
+		$post_id = $this->factory()->post->create();
+		$cat_id  = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => null, // Field is not populated if there are no selections.
+		];
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty( get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
 	public function test_save_post_does_nothing_if_there_are_no_changes() {
 		$post_id = $this->factory()->post->create();
 		$cat_id  = self::factory()->category->create();
