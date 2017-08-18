@@ -56,8 +56,6 @@ class MetaTest extends WP_UnitTestCase {
 	}
 
 	public function test_handles_multiple_calls_for_same_post_and_term() {
-		$this->markTestSkipped( 'Logic not yet implemented' );
-
 		$post_id = $this->factory()->post->create();
 		$cat_id  = self::factory()->category->create();
 
@@ -124,6 +122,45 @@ class MetaTest extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_render_meta_box() {
+		$this->factory()->category->create();
+
+		$this->assertCount( 2, get_terms( [
+			'taxonomy'   => 'category',
+			'hide_empty' => false,
+		] ), 'There should be two categories: "Uncategorized" (defined by default) and our new cat.' );
+
+		$output = $this->render_meta_box_output();
+
+		$this->assertContains(
+			'<select id="sticky-tax-term-id" name="sticky-tax-term-id[]"',
+			$output,
+			'A <select> element with ID #sticky-tax-term-id and name "sticky-tax-term-id[]" should be created.'
+		);
+		$this->assertContains(
+			'size="3"',
+			$output,
+			'The <select> size attribute should account for Uncategorized, the <optgroup>, and the new category.'
+		);
+		$this->assertContains(
+			'<input type="hidden" id="sticky-tax-nonce" name="sticky-tax-nonce"',
+			$output,
+			'The meta box should contain a hidden "sticky-tax-nonce" input.'
+		);
+	}
+
+	public function test_render_meta_box_limits_size_of_select() {
+		$this->factory()->category->create_many( 20 );
+
+		$output = $this->render_meta_box_output();
+
+		$this->assertContains(
+			'size="10"',
+			$output,
+			'The <select> size attribute should be capped at 10.'
+		);
+	}
+
 	public function test_save_post() {
 		$post_id = $this->factory()->post->create();
 		$cat_id  = self::factory()->category->create();
@@ -135,6 +172,22 @@ class MetaTest extends WP_UnitTestCase {
 		Meta\save_post( $post_id );
 
 		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_does_nothing_if_there_are_no_changes() {
+		$post_id = $this->factory()->post->create();
+		$cat_id  = self::factory()->category->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ $cat_id ],
+		];
+
+		Meta\sticky_post_for_term( $post_id, $cat_id );
+		$before = get_post_meta( $post_id, '_sticky_tax' );
+
+		Meta\save_post( $post_id );
+
+		$this->assertSame( $before, get_post_meta( $post_id, '_sticky_tax' ) );
 	}
 
 	public function test_save_post_verifies_nonce() {
@@ -279,5 +332,31 @@ class MetaTest extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( wp_scripts()->registered['select2']->extra['after'] );
 		$this->assertNotEmpty( wp_styles()->registered['select2']->extra['after'] );
+	}
+
+	/**
+	 * Shortcut for rendering the meta box and capturing it's output.
+	 *
+	 * @param WP_Post $post Optional. The post object. If one isn't defined, one will be created.
+	 * @param array   $meta Optional. The $post_meta argument for the render_meta_box() function.
+	 *                      Default is an array with an 'args' array, containing "category".
+	 */
+	protected function render_meta_box_output( $post = null, $meta = null ) {
+		if ( ! $post ) {
+			$post = $this->factory()->post->create_and_get();
+		}
+
+		if ( null === $meta ) {
+			$meta = [
+				'args' => [ 'category' ],
+			];
+		}
+
+		ob_start();
+		Meta\render_meta_box( $post, $meta );
+		$output = ob_get_contents();
+		ob_end_clean();
+
+		return $output;
 	}
 }

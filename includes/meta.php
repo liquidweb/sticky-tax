@@ -15,7 +15,8 @@ use WP_Term;
  *
  * @param int         $post_id The ID of the post object being sticked.
  * @param int|WP_Term $term_id Either the term object or the term ID.
- * @return bool True if the post meta was updated, false otherwise.
+ * @return bool True if the post meta was updated, false otherwise. If this post was already sticky
+ *              for the given term, the return value will be false.
  */
 function sticky_post_for_term( $post_id, $term_id ) {
 	if ( $term_id instanceof WP_Term ) {
@@ -23,6 +24,13 @@ function sticky_post_for_term( $post_id, $term_id ) {
 	}
 
 	if ( ! term_exists( $term_id ) ) {
+		return false;
+	}
+
+	// Don't add the post meta if this post is already sticky for this term.
+	$sticky = array_map( 'intval', get_post_meta( $post_id, '_sticky_tax', false ) );
+
+	if ( in_array( $term_id, $sticky, true ) ) {
 		return false;
 	}
 
