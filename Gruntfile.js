@@ -10,6 +10,7 @@ module.exports = function( grunt ) {
 			main: {
 				src: [
 					'includes/**',
+					'lib/**',
 					'languages/**',
 					'composer.json',
 					'CHANGELOG.md',
