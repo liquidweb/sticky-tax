@@ -2,6 +2,7 @@
 Thumbs.db
 wp-cli.local.yml
 dist/
+lib/
 node_modules/
 tests/coverage
 vendor

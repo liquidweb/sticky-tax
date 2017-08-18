@@ -25,6 +25,10 @@
   "dependencies": {},
   "devDependencies": {
     "grunt-contrib-copy": "^1.0.0",
-    "grunt-wp-i18n": "^1.0.0"
+    "grunt-wp-i18n": "^1.0.0",
+    "select2": "^4.0.3"
+  },
+  "scripts": {
+    "postinstall": "mkdir -p lib && cp -r node_modules/select2/dist ./lib/select2"
   }
 }
