@@ -41,9 +41,10 @@ function sticky_post_for_term( $post_id, $term_id ) {
  * Register the Sticky meta box on applicable post types.
  */
 function register_meta_boxes() {
-	$taxonomies = array_keys( get_taxonomies( [
+
+	$taxonomies = get_taxonomies( [
 		'public' => true,
-	] ) );
+	], 'objects' );
 
 	/**
 	 * Retrieve an array of taxonomies that may possess sticky posts.
@@ -56,6 +57,9 @@ function register_meta_boxes() {
 	if ( empty( $taxonomies ) ) {
 		return;
 	}
+
+	// Thin down the list to the taxonomy and the label.
+	$tax_data   = wp_list_pluck( $taxonomies, 'label', 'name' );
 
 	/**
 	 * Retrieve an array of post types that should be eligible for taxonomy-based stickiness.
@@ -71,7 +75,7 @@ function register_meta_boxes() {
 		$post_types,
 		'side',
 		'default',
-		$taxonomies
+		$tax_data
 	);
 }
 add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
@@ -87,18 +91,19 @@ function render_meta_box( $post, $meta_box ) {
 	$options  = array();
 	$size     = 0;
 
-	foreach ( $meta_box['args'] as $taxonomy ) {
-		$terms = get_terms( [
-			'taxonomy'   => $taxonomy,
-			'fields'     => 'id=>name',
-			'hide_empty' => false,
-		] );
+	foreach ( $meta_box['args'] as $tax_name => $tax_label ) {
 
-		if ( ! empty( $terms ) ) {
-			$tax                    = get_taxonomy( $taxonomy );
-			$options[ $tax->label ] = $terms;
-			$size += count( $terms ) + 1;
+		// Fetch my post terms.
+		$terms = wp_get_post_terms( $post->ID, $tax_name, array() );
+
+		// Skip if we have none.
+		if ( empty( $terms ) || is_wp_error( $terms ) ) {
+			continue;
 		}
+
+		// Set my options accordingly.
+		$options[ $tax_label ] = wp_list_pluck( $terms, 'name', 'term_id' );
+		$size += count( $terms ) + 1;
 	}
 
 	// Limit the <select> size.
