@@ -42,6 +42,19 @@ function sticky_post_for_term( $post_id, $term_id ) {
  */
 function register_meta_boxes() {
 
+	/**
+	 * Retrieve an array of post types that should be eligible for taxonomy-based stickiness.
+	 *
+	 * @param array $post_types Post types that should be able to use Sticky Tax.
+	 */
+	$post_types = apply_filters( 'stickytax_post_types', array( 'post' ) );
+
+	// Bail if we have no post types.
+	if ( empty( $post_types ) ) {
+		return;
+	}
+
+	// Set the arguments for getting all the available taxonomies.
 	$taxonomies = get_taxonomies( [
 		'public' => true,
 	], 'objects' );
@@ -61,13 +74,7 @@ function register_meta_boxes() {
 	// Thin down the list to the taxonomy and the label.
 	$tax_data   = wp_list_pluck( $taxonomies, 'label', 'name' );
 
-	/**
-	 * Retrieve an array of post types that should be eligible for taxonomy-based stickiness.
-	 *
-	 * @param array $post_types Post types that should be able to use Sticky Tax.
-	 */
-	$post_types = apply_filters( 'stickytax_post_types', array( 'post' ) );
-
+	// Now call the actual meta box.
 	add_meta_box(
 		'sticky-tax',
 		_x( 'Sticky', 'meta box title', 'sticky-tax' ),
