@@ -29,7 +29,7 @@
       "wp-enforcer"
     ],
     "test-coverage": [
-      "phpunit --coverage-html tests/coverage"
+      "bin/generate-test-coverage.sh"
     ]
   }
 }
