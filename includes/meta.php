@@ -38,9 +38,50 @@ function sticky_post_for_term( $post_id, $term_id ) {
 }
 
 /**
- * Register the Sticky meta box on applicable post types.
+ * Fetch the taxonomies tied to a particular object.
+ *
+ * @param  object  $object  The object we're looking against.
+ * @param  string  $output  The format to output.
+ * @param  boolean $public  Whether to remove the non-public ones or not.
+ *
+ * @return array
  */
-function register_meta_boxes() {
+function get_taxonomies_for_object( $object, $output = 'objects', $public = true ) {
+
+	// Set the arguments for getting all the available taxonomies.
+	$taxonomies = get_object_taxonomies( $object, 'objects' );
+
+	// Look to see if we have non-public ones, if requested.
+	if ( ! empty( $taxonomies ) && ! empty( $public ) ) {
+
+		// Loop the taxonomies and unset the ones that are not public.
+		foreach ( $taxonomies as $type => $single ) {
+
+			// If it's empty, unset.
+			if ( empty( $single->public ) ) {
+				unset( $taxonomies[ $type ] );
+			}
+		}
+	}
+
+	/**
+	 * Retrieve an array of taxonomies that may possess sticky posts.
+	 *
+	 * @param array $taxonomies Taxonomies for which posts should be able to stick.
+	 */
+	$taxonomies = apply_filters( 'stickytax_taxonomies', $taxonomies );
+
+	// Return the array or false.
+	return ! empty( $taxonomies ) ? $taxonomies : false;
+}
+
+/**
+ * Register the Sticky meta box on applicable post types.
+ *
+ * @param string  $post_type The post type of the current post object.
+ * @param WP_Post $post      The current post object.
+ */
+function register_meta_boxes( $post_type, $post ) {
 
 	/**
 	 * Retrieve an array of post types that should be eligible for taxonomy-based stickiness.
@@ -54,19 +95,9 @@ function register_meta_boxes() {
 		return;
 	}
 
-	// Set the arguments for getting all the available taxonomies.
-	$taxonomies = get_taxonomies( [
-		'public' => true,
-	], 'objects' );
+	// Attempt to get our taxonomies and bail without them.
+	$taxonomies = get_taxonomies_for_object( $post, 'objects' );
 
-	/**
-	 * Retrieve an array of taxonomies that may possess sticky posts.
-	 *
-	 * @param array $taxonomies Taxonomies for which posts should be able to stick.
-	 */
-	$taxonomies = apply_filters( 'stickytax_taxonomies', $taxonomies );
-
-	// If there are no taxonomies eligible for Sticky Tax, return early.
 	if ( empty( $taxonomies ) ) {
 		return;
 	}
@@ -81,11 +112,11 @@ function register_meta_boxes() {
 		__NAMESPACE__ . '\render_meta_box',
 		$post_types,
 		'side',
-		'default',
+		'high',
 		$tax_data
 	);
 }
-add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
+add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 10, 2 );
 
 /**
  * Render the Sticky meta box on a post edit screen.
@@ -94,47 +125,97 @@ add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 0 );
  * @param array   $meta_box The settings for the meta box, including an 'args' key.
  */
 function render_meta_box( $post, $meta_box ) {
-	$selected = array_map( 'intval', get_post_meta( $post->ID, '_sticky_tax' ) );
-	$options  = array();
-	$size     = 0;
 
+	// Bail if no args are passed. Shouldn't get this far, but ¯\_(ツ)_/¯.
+	if ( empty( $meta_box['args'] ) ) {
+		return;
+	}
+
+	// Fetch any selected terms.
+	$selected = array_map( 'intval', get_post_meta( $post->ID, '_sticky_tax' ) );
+
+	// Set an empty options array.
+	$options  = array();
+
+	// Loop the taxonomy data provided.
 	foreach ( $meta_box['args'] as $tax_name => $tax_label ) {
 
 		// Fetch my post terms.
 		$terms = wp_get_post_terms( $post->ID, $tax_name, array() );
 
-		// Skip if we have none.
-		if ( empty( $terms ) || is_wp_error( $terms ) ) {
-			continue;
-		}
+		// Set our items based on whether we have selected items or not.
+		$items  = empty( $terms ) || is_wp_error( $terms ) ? '' : wp_list_pluck( $terms, 'name', 'term_id' );
 
-		// Set my options accordingly.
-		$options[ $tax_label ] = wp_list_pluck( $terms, 'name', 'term_id' );
-		$size += count( $terms ) + 1;
+		// Set my options array accordingly.
+		$options[ $tax_name ] = [
+			'label' => $tax_label,
+			'items' => $items,
+		];
 	}
 
-	// Limit the <select> size.
-	$size = 10 > $size ? $size : 10;
-?>
+	// Bail without options data to show.
+	if ( empty( $options ) ) {
+		return;
+	}
 
-	<label for="sticky-tax-term-id" class="screen-reader-text"><?php esc_html_e( 'Sticky terms', 'sticky-tax' ); ?></label>
-	<p>
-		<select id="sticky-tax-term-id" name="sticky-tax-term-id[]" class="regular-text" size="<?php echo esc_attr( $size ); ?>" multiple>
-			<?php foreach ( $options as $group => $opts ) : ?>
-				<optgroup label="<?php echo esc_attr( $group ); ?>">
-					<?php foreach ( $opts as $id => $label ) : ?>
+	// Wrap the whole thing in a div.
+	echo '<div class="term-sticky-list-wrap">';
 
-						<option value="<?php echo esc_attr( $id ); ?>" <?php selected( in_array( $id, $selected, true ), true ); ?>><?php echo esc_html( $label ); ?></option>
+	// Loop the grouped term items.
+	foreach ( $options as $type => $data ) {
 
-					<?php endforeach; ?>
-				</optgroup>
-			<?php endforeach; ?>
-		</select>
-	</p>
+		// Set a class for the message.
+		$class  = ! empty( $data['items'] ) ? 'term-sticky-list-hide' : 'term-sticky-list-show';
 
-	<p class="description"><?php esc_html_e( '"Stick" this post to the top of the archive pages for the selected term(s)', 'sticky-tax' ); ?></p>
+		// Wrap each group in a div.
+		echo '<div id="term-sticky-' . esc_attr( $type ) . '-group" class="term-sticky-list-group" data-term-type="' . esc_attr( $type ) . '" >';
 
-<?php
+			// Handle my label.
+			echo '<h4>' . esc_html( $data['label'] ) . '</h4>';
+
+			// Open my unordered list wrapper.
+			echo '<ul id="list-' . esc_attr( $type ) . '" class="term-sticky-list term-sticky-list-' . esc_attr( $type ) . '">';
+
+		// Now check we have items to show.
+		if ( ! empty( $data['items'] ) ) {
+
+			// Now loop the items into a key/value pair.
+			foreach ( $data['items'] as $term_id => $term_name ) {
+
+				// Wrap each checkbox in a list item.
+				echo '<li id="item-' . absint( $term_id ) . '" data-term-id="' . absint( $term_id ) . '" data-term-name="' . esc_attr( $term_name ) . '" class="term-sticky-list-item">';
+
+					// Opening with the label.
+					echo '<label class="list-item-label" for="list-item-' . absint( $term_id ) . '">';
+
+						// The checkbox itself.
+						echo '<input type="checkbox" name="sticky-tax-term-id[]" class="list-item-input" id="list-item-' . absint( $term_id ) . '" value="' . absint( $term_id ) . '" ' . checked( in_array( $term_id, $selected, true ), true, false ) . ' />';
+
+						// Echo out the text.
+						echo esc_html( $term_name );
+
+					// Close the label.
+					echo '</label>';
+
+				// And close the list item.
+				echo '</li>';
+			}//end foreach
+		}//end if
+
+			// Close my unordered list wrapper.
+			echo '</ul>';
+
+			// If we had no items, show the message.
+			echo '<p class="term-sticky-list-empty ' . esc_attr( $class ) . '">' . esc_html__( 'No terms have been applied to this post.', 'sticky-tax' ) . '</p>';
+
+		// Close my group div.
+		echo '</div>';
+	}//end foreach
+
+	// Close my div.
+	echo '</div>';
+
+	// And my nonce.
 	wp_nonce_field( 'sticky-tax', 'sticky-tax-nonce' );
 }
 
@@ -144,6 +225,7 @@ function render_meta_box( $post, $meta_box ) {
  * @param int $post_id The post being saved.
  */
 function save_post( $post_id ) {
+
 	if (
 		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 		|| ! isset( $_POST['sticky-tax-nonce'] )
@@ -192,41 +274,106 @@ add_action( 'save_post', __NAMESPACE__ . '\save_post' );
  * @param string $hook The current page being loaded.
  */
 function register_scripts( $hook ) {
+
 	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		return;
 	}
 
-	// Current version of Select2.
-	$version = '4.0.3';
+	// Set a file suffix structure based on whether or not we want a minified version.
+	$file   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'sticky-tax' : 'sticky-tax.min';
 
-	// Register the script if it hasn't already been.
-	if ( ! wp_script_is( 'select2', 'registered' ) ) {
-		wp_register_script(
-			'select2',
-			STICKY_TAX_URL . 'lib/select2/js/select2.min.js',
-			array( 'jquery' ),
-			$version,
-			true
-		);
-	}
+	// Set a version for whether or not we're debugging.
+	$vers   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : STICKY_TAX_VERS;
 
-	// Register the stylesheet, if necessary.
-	if ( ! wp_style_is( 'select2', 'registered' ) ) {
-		wp_register_style(
-			'select2',
-			STICKY_TAX_URL . 'lib/select2/css/select2.min.css',
-			null,
-			$version
-		);
-	}
+	// Load our JS file.
+	wp_enqueue_script( 'sticky-tax-admin', STICKY_TAX_URL . 'assets/js/' . $file . '.js', array( 'jquery' ), $vers, true );
 
-	// Add the inline script necessary to get Select2 working for the meta box.
-	wp_add_inline_script( 'select2', "jQuery(document.getElementById('sticky-tax-term-id')).select2();" );
-
-	// Add small style overrides.
-	wp_add_inline_style( 'select2', '#sticky-tax .select2 li, #select2-sticky-tax-term-id-results li { margin-bottom: inherit; }' );
-
-	wp_enqueue_script( 'select2' );
-	wp_enqueue_style( 'select2' );
+	// Load our CSS file.
+	wp_enqueue_style( 'sticky-tax-admin', STICKY_TAX_URL . 'assets/css/' . $file . '.css', false, $vers, 'all' );
 }
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_scripts' );
+
+
+/**
+ * Handle the Ajax call for getting the term ID from a tag.
+ *
+ * @return array
+ */
+function get_id_from_name() {
+
+	// Only run this on the admin side.
+	if ( ! is_admin() ) {
+		die();
+	}
+
+	// Bail out if running an autosave.
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Bail out if running a cron, unless we've skipped that.
+	if ( defined( 'DOING_CRON' ) && DOING_CRON ) {
+		return;
+	}
+
+	// Check for the specific action.
+	if ( empty( $_POST['action'] ) || 'stickytax_id_for_name' !== sanitize_key( $_POST['action'] ) ) {
+		return false;
+	}
+
+	// Bail without passing a term name.
+	if ( empty( $_POST['term_name'] ) ) {
+
+		// Build our return.
+		$return = array(
+			'errcode' => 'NO_TERM_NAME',
+			'message' => __( 'No term name was provided.', 'sticky-tax' ),
+		);
+
+		// And handle my JSON return.
+		wp_send_json_error( $return );
+	}
+
+	// Bail without passing a term type.
+	if ( empty( $_POST['term_type'] ) ) {
+
+		// Build our return.
+		$return = array(
+			'errcode' => 'NO_TERM_TYPE',
+			'message' => __( 'No term type was provided.', 'sticky-tax' ),
+		);
+
+		// And handle my JSON return.
+		wp_send_json_error( $return );
+	}
+
+	// Set my variables.
+	$name   = preg_replace( '/\PL/u', '', sanitize_text_field( $_POST['term_name'] ) );
+	$type   = trim( sanitize_text_field( $_POST['term_type'] ) );
+
+	// Get my term data.
+	$term   = get_term_by( 'name', $name, $type );
+
+	// Check to see if our term failed.
+	if ( empty( $term ) || is_wp_error( $term ) ) {
+
+		// Build our return.
+		$return = array(
+			'errcode' => 'NO_TERM_FOUND',
+			'message' => __( 'The term could not be found.', 'sticky-tax' ),
+		);
+
+		// And handle my JSON return.
+		wp_send_json_error( $return );
+	}
+
+	// Build our return.
+	$return = array(
+		'errcode' => null,
+		'term_id' => $term->term_id,
+	);
+
+	// And handle my JSON return.
+	wp_send_json_success( $return );
+}
+add_action( 'wp_ajax_stickytax_get_id_from_name', __NAMESPACE__ . '\get_id_from_name' );
