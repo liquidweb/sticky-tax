@@ -275,7 +275,7 @@ add_action( 'save_post', __NAMESPACE__ . '\save_post' );
  */
 function register_scripts( $hook ) {
 
-	if ( ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+	if ( empty( $hook ) || ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
 		return;
 	}
 
@@ -285,11 +285,31 @@ function register_scripts( $hook ) {
 	// Set a version for whether or not we're debugging.
 	$vers   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : STICKY_TAX_VERS;
 
-	// Load our JS file.
-	wp_enqueue_script( 'sticky-tax-admin', STICKY_TAX_URL . 'assets/js/' . $file . '.js', array( 'jquery' ), $vers, true );
+	// Register the script if it hasn't already been.
+	if ( ! wp_script_is( 'sticky-tax-admin', 'registered' ) ) {
+		wp_register_script(
+			'sticky-tax-admin',
+			STICKY_TAX_URL . 'assets/js/' . $file . '.js',
+			array( 'jquery' ),
+			$vers,
+			true
+		);
+	}
 
-	// Load our CSS file.
-	wp_enqueue_style( 'sticky-tax-admin', STICKY_TAX_URL . 'assets/css/' . $file . '.css', false, $vers, 'all' );
+	// Register the stylesheet, if necessary.
+	if ( ! wp_style_is( 'sticky-tax-admin', 'registered' ) ) {
+		wp_register_style(
+			'sticky-tax-admin',
+			STICKY_TAX_URL . 'assets/css/' . $file . '.css',
+			null,
+			$vers,
+			'all'
+		);
+	}
+
+	// Now enqueue our CSS and JS file.
+	wp_enqueue_script( 'sticky-tax-admin' );
+	wp_enqueue_style( 'sticky-tax-admin' );
 }
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_scripts' );
 
