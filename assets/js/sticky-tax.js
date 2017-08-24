@@ -1,6 +1,18 @@
-//********************************************************
-// Add our newly selected item to the box.
-//********************************************************
+/**
+ * Scripting for the various message actions.
+ *
+ * @package LiquidWeb\StickyTax
+ * @author  Liquid Web
+ */
+
+/**
+ * Add our newly selected item to the box.
+ *
+ * @param  {[type]} termID   [description]
+ * @param  {[type]} termName [description]
+ * @param  {[type]} termType [description]
+ * @return {[type]}          [description]
+ */
 function stickyTaxAddItem( termID, termName, termType ) {
 
 	// Trim my term name to be safe.
@@ -23,9 +35,13 @@ function stickyTaxAddItem( termID, termName, termType ) {
 	jQuery( 'div#term-sticky-' + termType + '-group' ).find( 'p.term-sticky-list-empty' ).removeClass( 'term-sticky-list-show' ).addClass( 'term-sticky-list-hide' );
 }
 
-//********************************************************
-// Remove a selected item from the box.
-//********************************************************
+/**
+ * Remove a selected item from the box.
+ *
+ * @param  {[type]} termName [description]
+ * @param  {[type]} termType [description]
+ * @return {[type]}          [description]
+ */
 function stickyTaxRemoveItem( termName, termType ) {
 
 	// Trim my term name to be safe.
@@ -41,7 +57,7 @@ function stickyTaxRemoveItem( termName, termType ) {
 		jQuery( this ).remove();
 	});
 
-	// Now determine if we have
+	// Now determine if we have any remaining.
 	var itemCount = jQuery( 'ul#list-' + termType ).children().length;
 
 	// And add the note saying there are none if we hit zero.
@@ -51,14 +67,17 @@ function stickyTaxRemoveItem( termName, termType ) {
 
 }
 
-//********************************************************
-// Start the engines.
-//********************************************************
-jQuery(document).ready(function($) {
+/**
+ * Start the engines.
+ */
+jQuery( document ).ready( function($) {
 
-//********************************************************
-// Quick helper to check for an existance of an element.
-//********************************************************
+	/**
+	 * Quick helper to check for an existance of an element.
+	 *
+	 * @param  {Function} callback [description]
+	 * @return {[type]}            [description]
+	 */
 	$.fn.divExists = function(callback) {
 
 		// Slice some args.
@@ -72,9 +91,9 @@ jQuery(document).ready(function($) {
 		return this;
 	};
 
-//********************************************************
-// Set some variables to use later.
-//********************************************************
+	/**
+	 * Set some variables to use later.
+	 */
 	var termID;
 	var termName;
 	var termType;
@@ -82,9 +101,12 @@ jQuery(document).ready(function($) {
 	var tagName;
 	var tagButton;
 
-//********************************************************
-// Check for category clicking.
-//********************************************************
+	/**
+	 * Check for category clicking.
+	 *
+	 * @param  {Function} callback [description]
+	 * @return {[type]}   [description]
+	 */
 	$( 'div#categorydiv' ).divExists( function() {
 
 		// Look for the changing of an input.
@@ -106,9 +128,12 @@ jQuery(document).ready(function($) {
 		});
 	});
 
-//********************************************************
-// Check for post tag clicking.
-//********************************************************
+	/**
+	 * Check for post tag clicking.
+	 *
+	 * @param  {Function} callback [description]
+	 * @return {[type]}   [description]
+	 */
 	$( 'div#tagsdiv-post_tag' ).divExists( function() {
 
 		// Watch for any clicking inside that div.
@@ -128,7 +153,7 @@ jQuery(document).ready(function($) {
 				// And fetch my nonce.
 				boxNonce = $( 'input#sticky-tax-nonce' ).val();
 
-				// Set my data array,
+				// Set my data array.
 				var data = {
 					action:    'stickytax_get_id_from_name',
 					term_name: termName,
@@ -148,9 +173,8 @@ jQuery(document).ready(function($) {
 					if ( response.data.term_id !== '' ) {
 						stickyTaxAddItem( response.data.term_id, termName, 'post_tag' );
 					}
-
 				});
-			}
+			}//end if
 
 			// Check for the removal button.
 			if ( $( event.target ).is( 'button.ntdelbutton' ) ) {
@@ -167,7 +191,5 @@ jQuery(document).ready(function($) {
 
 	});
 
-//********************************************************
-// we are done here. go home
-//********************************************************
+	// We are done here. Go home.
 });
