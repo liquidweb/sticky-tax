@@ -323,7 +323,7 @@ function get_id_from_name() {
 
 	// Only run this on the admin side.
 	if ( ! is_admin() ) {
-		die();
+		wp_die( esc_attr__( 'This can only be run on admin.', 'sticky-tax' ) );
 	}
 
 	// Bail out if running an autosave.
