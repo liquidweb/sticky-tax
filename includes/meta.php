@@ -112,7 +112,7 @@ function register_meta_boxes( $post_type, $post ) {
 		__NAMESPACE__ . '\render_meta_box',
 		$post_types,
 		'side',
-		'high',
+		'default',
 		$tax_data
 	);
 }
