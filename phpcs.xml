@@ -37,6 +37,12 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 
-	<rule ref="WordPress-Extra" />
+	<rule ref="WordPress-Extra">
+		<properties>
+			<property name="custom_test_class_whitelist" type="array" value="WP_Ajax_UnitTestCase"/>
+		</properties>
+	</rule>
+
 	<rule ref="WordPress-Docs" />
+
 </ruleset>
