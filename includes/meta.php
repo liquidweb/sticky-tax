@@ -316,8 +316,21 @@ function get_id_from_name() {
 		return;
 	}
 
+	// Verify our nonce.
+	if ( false === check_ajax_referer( 'sticky-tax', 'nonce', false ) ) {
+
+		// Build our return.
+		$return = array(
+			'errcode' => 'BAD_NONCE',
+			'message' => __( 'The security nonce did not validate.', 'sticky-tax' ),
+		);
+
+		// And handle my JSON return.
+		wp_send_json_error( $return );
+	}
+
 	// Check for the specific action.
-	if ( empty( $_POST['action'] ) || 'stickytax_id_for_name' !== sanitize_key( $_POST['action'] ) ) {
+	if ( empty( $_POST['action'] ) || 'stickytax_get_id_from_name' !== sanitize_key( $_POST['action'] ) ) {
 		return false;
 	}
 

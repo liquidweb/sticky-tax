@@ -78,6 +78,7 @@ jQuery(document).ready(function($) {
 	var termID;
 	var termName;
 	var termType;
+	var boxNonce;
 	var tagName;
 	var tagButton;
 
@@ -124,11 +125,15 @@ jQuery(document).ready(function($) {
 				// Trim our term name to be safe.
 				termName = $.trim( termName );
 
+				// And fetch my nonce.
+				boxNonce = $( 'input#sticky-tax-nonce' ).val();
+
 				// Set my data array,
 				var data = {
 					action:    'stickytax_get_id_from_name',
 					term_name: termName,
 					term_type: 'post_tag',
+					nonce:     boxNonce,
 				};
 
 				// Now handle the response.
