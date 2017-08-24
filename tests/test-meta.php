@@ -69,7 +69,7 @@ class MetaTest extends WP_UnitTestCase {
 	public function test_register_meta_boxes_applies_taxonomy_filter() {
 		global $wp_meta_boxes;
 
-		$tax = uniqid();
+		$tax = get_taxonomy( 'category' );
 
 		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) use ( $tax ) {
 			$taxonomies[] = $tax;
@@ -77,14 +77,13 @@ class MetaTest extends WP_UnitTestCase {
 			return $taxonomies;
 		} );
 
-		$post_id = $this->factory->post->create();
-		$post = get_post( $post_id );
+		$post = $this->factory->post->create_and_get();
 		$post_type = $post->post_type;
 
 		Meta\register_meta_boxes( $post, $post_type );
 
-		$this->assertContains(
-			$tax,
+		$this->assertArrayHasKey(
+			$tax->name,
 			$wp_meta_boxes['post']['side']['default']['sticky-tax']['args'],
 			'The stickytax_taxonomies filter should be applied when registering meta boxes.'
 		);
@@ -101,8 +100,7 @@ class MetaTest extends WP_UnitTestCase {
 			return $post_types;
 		} );
 
-		$post_id = $this->factory->post->create();
-		$post = get_post( $post_id );
+		$post = $this->factory->post->create_and_get();
 		$post_type = $post->post_type;
 
 		Meta\register_meta_boxes( $post, $post_type );
@@ -121,8 +119,7 @@ class MetaTest extends WP_UnitTestCase {
 			return [];
 		} );
 
-		$post_id = $this->factory->post->create();
-		$post = get_post( $post_id );
+		$post = $this->factory->post->create_and_get();
 		$post_type = $post->post_type;
 
 		Meta\register_meta_boxes( $post, $post_type );
