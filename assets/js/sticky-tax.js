@@ -97,6 +97,7 @@ jQuery( document ).ready( function($) {
 	var termID;
 	var termName;
 	var termType;
+	var termList;
 	var boxNonce;
 	var tagName;
 	var tagButton;
@@ -107,7 +108,7 @@ jQuery( document ).ready( function($) {
 	 * @param  {Function} callback [description]
 	 * @return {[type]}   [description]
 	 */
-	$( 'div#categorydiv' ).divExists( function() {
+	$( 'div#side-sortables' ).divExists( function() {
 
 		// Look for the changing of an input.
 		$( 'ul.categorychecklist' ).on( 'change', 'input', function( event ) {
@@ -118,11 +119,18 @@ jQuery( document ).ready( function($) {
 			// Get my term name.
 			termName = $.trim( $( this ).parent( 'label' ).text() );
 
+			// Determine my list item.
+			termList = $( this ).parents( 'ul' ).attr( 'id' ).replace( 'checklist', '' );
+
+			// Then determine the type ( have to run the replace twice because of both tabs).
+			termType = termList.replace( 'checklist', '' );
+			termType = termType.replace( '-pop', '' );
+
 			// Check if we've been added or not.
 			if ( $( this ).is( ':checked' ) ) {
-				stickyTaxAddItem( termID, termName, 'category' );
+				stickyTaxAddItem( termID, termName, termType );
 			} else {
-				stickyTaxRemoveItem( termName, 'category' );
+				stickyTaxRemoveItem( termName, termType );
 			}
 
 		});
@@ -143,7 +151,7 @@ jQuery( document ).ready( function($) {
 			if ( $( event.target ).is( 'input.tagadd' ) ) {
 
 				// Get my term name.
-				termName = $( '.tagchecklist button:last' ).parent( 'span' ).first().contents().filter( function() {
+				termName = $( '#post_tag' ).find( '.tagchecklist button:last' ).parent( 'span' ).first().contents().filter( function() {
 					return this.nodeType == 3;
 				}).text();
 
@@ -187,6 +195,48 @@ jQuery( document ).ready( function($) {
 				// And remove the item.
 				stickyTaxRemoveItem( termName, 'post_tag' );
 			}
+
+		});
+
+		// Check for clicking in the "most used" box.
+		$( '#tagsdiv-post_tag' ).on( 'mousedown', function( event ) {
+
+			// Watch the target to see if it's one of our tag cloud items.
+			if ( $( event.target ).is( '#tagcloud-post_tag .tag-cloud-link' ) ) {
+
+				// Get my term name.
+				termName = $( event.target ).contents().filter( function() {
+					return this.nodeType == 3;
+				}).text();
+
+				// Trim our term name to be safe.
+				termName = $.trim( termName );
+
+				// And fetch my nonce.
+				boxNonce = $( 'input#sticky-tax-nonce' ).val();
+
+				// Set my data array.
+				var data = {
+					action:    'stickytax_get_id_from_name',
+					term_name: termName,
+					term_type: 'post_tag',
+					nonce:     boxNonce,
+				};
+
+				// Now handle the response.
+				jQuery.post( ajaxurl, data, function( response ) {
+
+					// Handle the failure.
+					if ( response.success !== true ) {
+						return false;
+					}
+
+					// We got a term ID, so use it.
+					if ( response.data.term_id !== '' ) {
+						stickyTaxAddItem( response.data.term_id, termName, 'post_tag' );
+					}
+				});
+			}//end if
 		});
 
 	});
