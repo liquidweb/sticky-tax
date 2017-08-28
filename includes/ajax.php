@@ -69,9 +69,11 @@ function get_id_from_name() {
 		wp_send_json_error( $return );
 	}
 
-	// Set my variables.
+	// Set the term name. The regex handles finding unicode and other ne'er do wells.
 	$name   = preg_replace( '/\PL/u', '', sanitize_text_field( $_POST['term_name'] ) );
-	$type   = trim( sanitize_text_field( $_POST['term_type'] ) );
+
+	// Set the term type. Should be a string.
+	$type   = sanitize_text_field( $_POST['term_type'] );
 
 	// Get my term data.
 	$term   = get_term_by( 'name', $name, $type );
