@@ -37,6 +37,11 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 
+	<!-- Don't require associative arrays to have each entry on a new line for tests. -->
+	<rule ref="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeKeyFound">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
 	<rule ref="WordPress-Extra">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array" value="WP_Ajax_UnitTestCase"/>

@@ -19,40 +19,28 @@ class AjaxTest extends WP_Ajax_UnitTestCase {
 		$this->assertObjectHasAttribute( 'data', $response );
 	}
 
-	public function test_ajax_error_bad_nonce() {
-		$response = $this->make_ajax_request( [
-			'nonce' => uniqid(),
-		] );
+	/**
+	 * @dataProvider ajax_error_provider()
+	 */
+	public function test_ajax_error( $args, $error_code ) {
+		$response = $this->make_ajax_request( $args );
 
-		$this->assertFalse( $response->success );
-		$this->assertEquals( $response->data->errcode, 'BAD_NONCE' );
+		$this->assertFalse( $response->success, 'Success property should be false when failure occurs.' );
+		$this->assertEquals( $response->data->errcode, $error_code, 'Did not receive expected error code.' );
 	}
 
-	public function test_ajax_error_no_term_name() {
-		$response = $this->make_ajax_request( [
-			'term_name' => '',
-		] );
-
-		$this->assertFalse( $response->success );
-		$this->assertEquals( $response->data->errcode, 'NO_TERM_NAME' );
-	}
-
-	public function test_ajax_error_no_term_type() {
-		$response = $this->make_ajax_request( [
-			'term_type' => '',
-		] );
-
-		$this->assertFalse( $response->success );
-		$this->assertEquals( $response->data->errcode, 'NO_TERM_TYPE' );
-	}
-
-	public function test_ajax_error_no_term_found() {
-		$response = $this->make_ajax_request( [
-			'term_name' => uniqid(),
-		] );
-
-		$this->assertFalse( $response->success );
-		$this->assertEquals( $response->data->errcode, 'NO_TERM_FOUND' );
+	/**
+	 * Provide various error conditions for test_ajax_error().
+	 *
+	 * @return array An array of error conditions.
+	 */
+	public function ajax_error_provider() {
+		return [
+			'Invalid nonce'   => [ [ 'nonce' => uniqid() ], 'BAD_NONCE' ],
+			'Empty term name' => [ [ 'term_name' => '' ], 'NO_TERM_NAME' ],
+			'Empty term type' => [ [ 'term_type' => '' ], 'NO_TERM_TYPE' ],
+			'Term not found'  => [ [ 'term_name' => uniqid() ], 'NO_TERM_FOUND' ],
+		];
 	}
 
 	/**
