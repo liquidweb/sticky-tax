@@ -316,24 +316,6 @@ class MetaTest extends WP_UnitTestCase {
 		];
 	}
 
-	public function test_register_scripts_checks_for_existing_scripts() {
-		wp_register_script( 'sticky-tax-admin', 'https://example.com', null, '0.0.7', true );
-		wp_register_style( 'sticky-tax-admin', 'https://example.com', null, '0.0.7', true );
-
-		Meta\register_scripts( 'post.php' );
-
-		$this->assertEquals( '0.0.7', wp_scripts()->registered['sticky-tax-admin']->ver );
-		$this->assertEquals( '0.0.7', wp_styles()->registered['sticky-tax-admin']->ver );
-	}
-
-	public function test_register_scripts_will_register_style_if_script_is_missing() {
-		wp_register_script( 'sticky-tax-admin', 'https://example.com', null, '0.0.7', true );
-
-		Meta\register_scripts( 'post.php' );
-
-		$this->assertTrue( wp_style_is( 'sticky-tax-admin', 'enqueued' ) );
-	}
-
 	/**
 	 * Shortcut for rendering the meta box and capturing it's output.
 	 *

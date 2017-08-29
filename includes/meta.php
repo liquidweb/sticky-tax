@@ -279,36 +279,29 @@ function register_scripts( $hook ) {
 		return;
 	}
 
-	// Set a file suffix structure based on whether or not we want a minified version.
-	$file   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? 'sticky-tax' : 'sticky-tax.min';
-
-	// Set a version for whether or not we're debugging.
-	$vers   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? time() : STICKY_TAX_VERS;
-
-	// Register the script if it hasn't already been.
-	if ( ! wp_script_is( 'sticky-tax-admin', 'registered' ) ) {
-		wp_register_script(
-			'sticky-tax-admin',
-			STICKY_TAX_URL . 'assets/js/' . $file . '.js',
-			array( 'jquery' ),
-			$vers,
-			true
-		);
+	// The filenames and version numbers are dependent on whether or not SCRIPT_DEBUG is true.
+	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+		$file = 'sticky-tax';
+		$vers = time();
+	} else {
+		$file = 'sticky-tax.min';
+		$vers = STICKY_TAX_VERS;
 	}
 
-	// Register the stylesheet, if necessary.
-	if ( ! wp_style_is( 'sticky-tax-admin', 'registered' ) ) {
-		wp_register_style(
-			'sticky-tax-admin',
-			STICKY_TAX_URL . 'assets/css/' . $file . '.css',
-			null,
-			$vers,
-			'all'
-		);
-	}
+	wp_enqueue_script(
+		'sticky-tax-admin',
+		STICKY_TAX_URL . 'assets/js/' . $file . '.js',
+		array( 'jquery' ),
+		$vers,
+		true
+	);
 
-	// Now enqueue our CSS and JS file.
-	wp_enqueue_script( 'sticky-tax-admin' );
-	wp_enqueue_style( 'sticky-tax-admin' );
+	wp_enqueue_style(
+		'sticky-tax-admin',
+		STICKY_TAX_URL . 'assets/css/' . $file . '.css',
+		null,
+		$vers,
+		'all'
+	);
 }
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_scripts' );
