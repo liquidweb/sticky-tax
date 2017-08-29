@@ -119,6 +119,37 @@ function register_meta_boxes( $post_type, $post ) {
 add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 10, 2 );
 
 /**
+ * Get an array of all terms from non-hierarchical taxonomies that the given $post supports.
+ *
+ * @param WP_Post $post_type The current post type.
+ * @return array A nested array, keyed by the taxonomy.
+ */
+function get_non_hierarchical_term_mapping( $post_type ) {
+	$taxonomies = get_taxonomies_for_object( $post_type );
+	$terms      = array();
+
+	if ( ! $taxonomies ) {
+		return $terms;
+	}
+
+	foreach ( $taxonomies as $tax => $object ) {
+
+		// Filter out hierarchical taxonomies.
+		if ( $object->hierarchical ) {
+			continue;
+		}
+
+		$terms[ $tax ] = array_flip( get_terms( array(
+			'taxonomy'   => $tax,
+			'hide_empty' => false,
+			'fields'     => 'id=>name',
+		) ) );
+	}
+
+	return $terms;
+}
+
+/**
  * Render the Sticky meta box on a post edit screen.
  *
  * @param WP_Post $post     The current post object.
@@ -225,7 +256,6 @@ function render_meta_box( $post, $meta_box ) {
  * @param int $post_id The post being saved.
  */
 function save_post( $post_id ) {
-
 	if (
 		( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
 		|| ! isset( $_POST['sticky-tax-nonce'] )
@@ -264,29 +294,21 @@ function save_post( $post_id ) {
 add_action( 'save_post', __NAMESPACE__ . '\save_post' );
 
 /**
- * Register the Select2 scripts used by the meta box.
- *
- * As Select2 is a popular library, we'll first check to see if another plugin has registered it
- * and, if so, use that instance instead.
- *
- * @link https://select2.github.io/
+ * Register the scripts and styles used by the plugin.
  *
  * @param string $hook The current page being loaded.
  */
 function register_scripts( $hook ) {
+	$pages = array( 'post.php', 'post-new.php' );
 
-	if ( empty( $hook ) || ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
+	if ( empty( $hook ) || ! in_array( $hook, $pages, true ) ) {
 		return;
 	}
 
 	// The filenames and version numbers are dependent on whether or not SCRIPT_DEBUG is true.
-	if ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
-		$file = 'sticky-tax';
-		$vers = time();
-	} else {
-		$file = 'sticky-tax.min';
-		$vers = STICKY_TAX_VERS;
-	}
+	$debug = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
+	$file  = $debug ? 'sticky-tax' : 'sticky-tax.min';
+	$vers  = $debug ? null : STICKY_TAX_VERS;
 
 	wp_enqueue_script(
 		'sticky-tax-admin',
@@ -295,6 +317,12 @@ function register_scripts( $hook ) {
 		$vers,
 		true
 	);
+
+	// Include the non-hierarchical terms, mapped to their IDs.
+	$terms = get_non_hierarchical_term_mapping( get_post_type() );
+	wp_localize_script( 'sticky-tax-admin', 'stickyTax', array(
+		'terms' => $terms,
+	) );
 
 	wp_enqueue_style(
 		'sticky-tax-admin',

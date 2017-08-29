@@ -131,6 +131,21 @@ class MetaTest extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_get_non_hierarchical_term_mapping() {
+		$post = $this->factory()->post->create_and_get();
+		$term = $this->factory()->tag->create_and_get();
+
+		// Verify the taxonomies are assigned.
+		$taxonomies = get_object_taxonomies( $post, 'names' );
+		$this->assertContains( 'post_tag', $taxonomies );
+
+		$response = Meta\get_non_hierarchical_term_mapping( $post );
+
+		$this->assertEquals( [
+			$term->term_id => $term->name,
+		], $response['post_tag'] );
+	}
+
 	public function test_render_meta_box() {
 		$this->factory()->category->create();
 
@@ -314,6 +329,19 @@ class MetaTest extends WP_UnitTestCase {
 			'admin index page' => [ 'index.php', false ],
 			'post list table'  => [ 'edit.php', false ],
 		];
+	}
+
+	public function test_register_scripts_localizes_script() {
+		global $post;
+
+		$post = $this->factory()->post->create_and_get();
+		$tag  = $this->factory()->tag->create_and_get();
+
+		Meta\register_scripts( 'post.php' );
+
+		$this->assertContains( '"post_tag":' . wp_json_encode( [
+			$tag->term_id => $tag->name,
+		] ), wp_scripts()->get_data( 'sticky-tax-admin', 'data' ) );
 	}
 
 	/**
