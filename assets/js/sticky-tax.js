@@ -8,10 +8,11 @@
 /**
  * Add our newly selected item to the box.
  *
- * @param  {[type]} termID   [description]
- * @param  {[type]} termName [description]
- * @param  {[type]} termType [description]
- * @return {[type]}          [description]
+ * @param  integer termID    The ID of the term being added.
+ * @param  string  termName  The name of the term being added.
+ * @param  string  termType  The taxonomy type of the term.
+ *
+ * @return HTML
  */
 function stickyTaxAddItem( termID, termName, termType ) {
 
@@ -38,9 +39,10 @@ function stickyTaxAddItem( termID, termName, termType ) {
 /**
  * Remove a selected item from the box.
  *
- * @param  {[type]} termName [description]
- * @param  {[type]} termType [description]
- * @return {[type]}          [description]
+ * @param  string termName  The name of the term being removed.
+ * @param  string termType  The taxonomy type of the term.
+ *
+ * @return HTML
  */
 function stickyTaxRemoveItem( termName, termType ) {
 
@@ -50,11 +52,14 @@ function stickyTaxRemoveItem( termName, termType ) {
 	// Find the item in the term group with our term name.
 	jQuery( 'div#term-sticky-' + termType + '-group li[data-term-name="' + termName + '"]' ).filter( function( index ) {
 
+		// Set this element as a variable.
+		var $self = jQuery( this );
+
 		// Uncheck the box to be safe.
-		jQuery( this ).find( 'input' ).prop( 'checked', false );
+		$self.find( 'input' ).prop( 'checked', false );
 
 		// Find our list item and remove it.
-		jQuery( this ).remove();
+		$self.remove();
 	});
 
 	// Now determine if we have any remaining.
@@ -74,11 +79,8 @@ jQuery( document ).ready( function($) {
 
 	/**
 	 * Quick helper to check for an existance of an element.
-	 *
-	 * @param  {Function} callback [description]
-	 * @return {[type]}            [description]
 	 */
-	$.fn.divExists = function(callback) {
+	$.fn.divExists = function( callback ) {
 
 		// Slice some args.
 		var args = [].slice.call( arguments, 1 );
@@ -104,9 +106,7 @@ jQuery( document ).ready( function($) {
 
 	/**
 	 * Check for category clicking.
-	 *
-	 * @param  {Function} callback [description]
-	 * @return {[type]}   [description]
+	 * Either adds or removes the checkbox.
 	 */
 	$( 'div#side-sortables' ).divExists( function() {
 
@@ -138,9 +138,7 @@ jQuery( document ).ready( function($) {
 
 	/**
 	 * Check for post tag clicking.
-	 *
-	 * @param  {Function} callback [description]
-	 * @return {[type]}   [description]
+	 * Either adds or removes the checkbox.
 	 */
 	$( 'div#tagsdiv-post_tag' ).divExists( function() {
 
