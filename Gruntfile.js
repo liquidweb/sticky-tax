@@ -22,6 +22,15 @@ module.exports = function( grunt ) {
 			},
 		},
 
+		eslint: {
+			options: {
+				configFile: '.eslintrc'
+			},
+			target: [
+				'assets/js/sticky-tax.js'
+			]
+		},
+
 		uglify: {
 			options: {
 				banner: '/*! Sticky Tax - v<%= pkg.version %> */',
@@ -55,9 +64,10 @@ module.exports = function( grunt ) {
 
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
+	grunt.loadNpmTasks( 'grunt-eslint' );
 	grunt.loadNpmTasks( 'grunt-wp-i18n' );
 
-	grunt.registerTask( 'build', [ 'i18n', 'uglify', 'copy' ] );
+	grunt.registerTask( 'build', [ 'eslint', 'i18n', 'uglify', 'copy' ] );
 	grunt.registerTask( 'i18n', [ 'makepot' ] );
 
 	grunt.util.linefeed = '\n';
