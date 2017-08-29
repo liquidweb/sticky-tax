@@ -4,12 +4,12 @@
  * @package LiquidWeb\StickyTax
  * @author  Liquid Web
  */
+/* global stickyTax */
 
-( function ( window, document ) {
+( function ( window, document, undefined ) {
 	'use strict';
 
-	var categoryMetabox = document.getElementById( 'side-sortables' ),
-		termLists = {},
+	var termLists = {},
 
 		/**
 		 * Given a taxonomy name, return the corresponding list element.
@@ -26,20 +26,36 @@
 		},
 
 		/**
-		 * Add a new term into the list of available taxonomy terms.
+		 * Given a term name and its taxonomy, return the term ID.
+		 *
+		 * If the value isn't available in the cache, an Ajax request will be made to WordPress in
+		 * order to retrieve it.
+		 *
+		 * @param {string} name - The taxonomy term name.
+		 * @param {string} tax  - The taxonomy the term belongs to.
+		 * @return {int} The term ID, or 0 if no matching term was found.
+		 */
+		getTermIdByName = function ( name, tax ) {
+			return stickyTax.terms[ tax ][ name ];
+		},
+
+		/**
+		 * Build a new list item for the Sticky Tax meta box.
 		 *
 		 * @param {int}    id   - The taxonomy term ID.
 		 * @param {string} name - The name (label) for the term.
 		 * @param {string} tax  - The term's taxonomy.
+		 * @return {Element} The newly-constructed HTML Element.
 		 */
 		addItem = function ( id, name, tax ) {
 			var list = getTaxonomyTermList( tax ),
 				li = document.createElement( 'li' ),
 				label = document.createElement( 'label' ),
-				input = document.createElement( 'input' );
+				input = document.createElement( 'input' ),
+				inputId = 'list-item-' + id;
 
-			// Return early if we have nowhere to put the item.
-			if ( ! list ) {
+			// Return early if we have nowhere to put the item or it already exists.
+			if ( ! list || null !== document.getElementById( inputId ) ) {
 				return;
 			}
 
@@ -50,10 +66,10 @@
 			// Construct each of the child nodes.
 			input.type = 'checkbox';
 			input.name = 'sticky-tax-term-id[]';
-			input.id = 'list-item-' + id;
+			input.id = inputId;
 			input.value = id;
 
-			label.htmlFor = 'list-item-' + id;
+			label.htmlFor = inputId;
 			label.classList.add( 'list-item-label' );
 			label.appendChild( input );
 			label.appendChild( document.createTextNode( name ) );
@@ -105,248 +121,58 @@
 			} else {
 				removeItem( term.value, tax );
 			}
+		},
+
+		/**
+		 * Handle non-hierarchical taxonomy meta boxes.
+		 *
+		 * @param {Event} e -The event that triggered this callback.
+		 */
+		handleNonHierarchicalTaxonomies = function ( e ) {
+			var tax = this.id;
+
+			if ( e.target.classList.contains( 'tagadd' ) && tax ) {
+				this.querySelectorAll( '.tagchecklist > span' ).forEach( function ( term ) {
+					var name;
+
+					if ( ! term.lastChild ) {
+						return;
+					}
+
+					name = term.lastChild.textContent;
+
+					addItem( getTermIdByName( name, tax ), name, tax );
+				} );
+
+			} else if ( e.target.classList.contains( 'ntdelbutton' ) ) {
+				removeItem( getTermIdByName( e.target.parentNode.lastChild.textContent, tax ), tax );
+			}
+		},
+
+		/**
+		 * Handle tag clouds, which can be used by non-hierarchical taxonomies.
+		 *
+		 * @param {Event} e - The term taxonomy.
+		 */
+		handleTagClouds = function( e ) {
+			var tax = this.querySelector( '.tagsdiv' ).id;
+
+			if ( e.target.classList.contains( 'tag-cloud-link' ) ) {
+				addItem( getTermIdByName( e.target.innerText, tax ), e.target.innerText, tax );
+			}
 		};
 
-	// Add event listeners for hierarchical taxonomy meta boxes.
+	// Add event listeners for hierarchical taxonomy meta boxes (e.g. categories).
 	document.querySelectorAll( '.categorydiv' ).forEach( function ( el ) {
 		el.addEventListener( 'change', handleHierarchicalTaxonomies );
 	} );
 
-} ) ( window, document, undefined );
+	// Event listeners for non-hierarchical taxonomies (e.g. post_tags).
+	document.querySelectorAll( '.tagsdiv' ).forEach( function ( el ) {
+		el.addEventListener( 'click', handleNonHierarchicalTaxonomies );
 
-/**
- * Add our newly selected item to the box.
- *
- * @param  integer termID    The ID of the term being added.
- * @param  string  termName  The name of the term being added.
- * @param  string  termType  The taxonomy type of the term.
- *
- * @return HTML
- */
-function stickyTaxAddItem( termID, termName, termType ) {
+		// The tagcloud div lives just outside the .tagsdiv, so we'll attach it to the parent.
+		el.parentElement.addEventListener( 'mousedown', handleTagClouds );
+	} );
 
-	// Trim my term name to be safe.
-	termName = jQuery.trim( termName );
-
-	// Set an empty var.
-	var newItem = '';
-
-	// Build my new list item.
-	newItem += '<li id="item-' + termID + '" data-term-id="' + termID + '" data-term-name="' + termName + '" class="term-sticky-list-item">';
-	newItem += '<label class="list-item-label" for="list-item-' + termID + '">';
-	newItem += '<input type="checkbox" name="sticky-tax-term-id[]" id="list-item-' + termID + '" value="' + termID + '" />'
-	newItem += termName;
-	newItem += '</li>';
-
-	// Add it to the end of the list.
-	jQuery( 'ul#list-' + termType ).append( newItem );
-
-	// And hide the note saying there are none.
-	jQuery( 'div#term-sticky-' + termType + '-group' ).find( 'p.term-sticky-list-empty' ).removeClass( 'term-sticky-list-show' ).addClass( 'term-sticky-list-hide' );
-}
-
-/**
- * Remove a selected item from the box.
- *
- * @param  string termName  The name of the term being removed.
- * @param  string termType  The taxonomy type of the term.
- *
- * @return HTML
- */
-function stickyTaxRemoveItem( termName, termType ) {
-
-	// Trim my term name to be safe.
-	termName = jQuery.trim( termName );
-
-	// Find the item in the term group with our term name.
-	jQuery( 'div#term-sticky-' + termType + '-group li[data-term-name="' + termName + '"]' ).filter( function( index ) {
-
-		// Set this element as a variable.
-		var $self = jQuery( this );
-
-		// Uncheck the box to be safe.
-		$self.find( 'input' ).prop( 'checked', false );
-
-		// Find our list item and remove it.
-		$self.remove();
-	});
-
-	// Now determine if we have any remaining.
-	var itemCount = jQuery( 'ul#list-' + termType ).children().length;
-
-	// And add the note saying there are none if we hit zero.
-	if ( itemCount < 1 ) {
-		jQuery( 'div#term-sticky-' + termType + '-group' ).find( 'p.term-sticky-list-empty' ).removeClass( 'term-sticky-list-hide' ).addClass( 'term-sticky-list-show' );
-	}
-
-}
-
-/**
- * Start the engines.
- */
-jQuery( document ).ready( function($) {
-
-	/**
-	 * Quick helper to check for an existance of an element.
-	 */
-	$.fn.divExists = function( callback ) {
-
-		// Slice some args.
-		var args = [].slice.call( arguments, 1 );
-
-		// Check for length.
-		if ( this.length ) {
-			callback.call( this, args );
-		}
-		// Return it.
-		return this;
-	};
-
-	/**
-	 * Set some variables to use later.
-	 */
-	var termID;
-	var termName;
-	var termType;
-	var termList;
-	var boxNonce;
-	var tagName;
-	var tagButton;
-
-	/**
-	 * Check for category clicking.
-	 * Either adds or removes the checkbox.
-	 */
-	$( 'div#side-sortables' ).divExists( function() {
-
-		// Look for the changing of an input.
-		/*$( 'ul.categorychecklist' ).on( 'change', 'input', function( event ) {
-
-			// Set my term ID.
-			termID  = $( this ).attr( 'value' );
-
-			// Get my term name.
-			termName = $.trim( $( this ).parent( 'label' ).text() );
-
-			// Determine my list item.
-			termList = $( this ).parents( 'ul' ).attr( 'id' ).replace( 'checklist', '' );
-
-			// Then determine the type ( have to run the replace twice because of both tabs).
-			termType = termList.replace( 'checklist', '' );
-			termType = termType.replace( '-pop', '' );
-
-			// Check if we've been added or not.
-			if ( $( this ).is( ':checked' ) ) {
-				stickyTaxAddItem( termID, termName, termType );
-			} else {
-				stickyTaxRemoveItem( termName, termType );
-			}
-
-		});*/
-	});
-
-	/**
-	 * Check for post tag clicking.
-	 * Either adds or removes the checkbox.
-	 */
-	$( 'div#tagsdiv-post_tag' ).divExists( function() {
-
-		// Watch for any clicking inside that div.
-		$( '#tagsdiv-post_tag' ).on( 'click', function( event ) {
-
-			// Check for the add new button.
-			if ( $( event.target ).is( 'input.tagadd' ) ) {
-
-				// Get my term name.
-				termName = $( '#post_tag' ).find( '.tagchecklist button:last' ).parent( 'span' ).first().contents().filter( function() {
-					return this.nodeType == 3;
-				}).text();
-
-				// Trim our term name to be safe.
-				termName = $.trim( termName );
-
-				// And fetch my nonce.
-				boxNonce = $( 'input#sticky-tax-nonce' ).val();
-
-				// Set my data array.
-				var data = {
-					action:    'stickytax_get_id_from_name',
-					term_name: termName,
-					term_type: 'post_tag',
-					nonce:     boxNonce,
-				};
-
-				// Now handle the response.
-				jQuery.post( ajaxurl, data, function( response ) {
-
-					// Handle the failure.
-					if ( response.success !== true ) {
-						return false;
-					}
-
-					// We got a term ID, so use it.
-					if ( response.data.term_id !== '' ) {
-						stickyTaxAddItem( response.data.term_id, termName, 'post_tag' );
-					}
-				});
-			}//end if
-
-			// Check for the removal button.
-			if ( $( event.target ).is( 'button.ntdelbutton' ) ) {
-
-				// Get my term name.
-				termName = $( event.target ).parent( 'span' ).first().contents().filter( function() {
-					return this.nodeType == 3;
-				}).text();
-
-				// And remove the item.
-				stickyTaxRemoveItem( termName, 'post_tag' );
-			}
-
-		});
-
-		// Check for clicking in the "most used" box.
-		$( '#tagsdiv-post_tag' ).on( 'mousedown', function( event ) {
-
-			// Watch the target to see if it's one of our tag cloud items.
-			if ( $( event.target ).is( '#tagcloud-post_tag .tag-cloud-link' ) ) {
-
-				// Get my term name.
-				termName = $( event.target ).contents().filter( function() {
-					return this.nodeType == 3;
-				}).text();
-
-				// Trim our term name to be safe.
-				termName = $.trim( termName );
-
-				// And fetch my nonce.
-				boxNonce = $( 'input#sticky-tax-nonce' ).val();
-
-				// Set my data array.
-				var data = {
-					action:    'stickytax_get_id_from_name',
-					term_name: termName,
-					term_type: 'post_tag',
-					nonce:     boxNonce,
-				};
-
-				// Now handle the response.
-				jQuery.post( ajaxurl, data, function( response ) {
-
-					// Handle the failure.
-					if ( response.success !== true ) {
-						return false;
-					}
-
-					// We got a term ID, so use it.
-					if ( response.data.term_id !== '' ) {
-						stickyTaxAddItem( response.data.term_id, termName, 'post_tag' );
-					}
-				});
-			}//end if
-		});
-
-	});
-
-	// We are done here. Go home.
-});
+} ( window, document ) );
