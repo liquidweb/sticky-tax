@@ -22,6 +22,20 @@ module.exports = function( grunt ) {
 			},
 		},
 
+		uglify: {
+			options: {
+				banner: '/*! Sticky Tax - v<%= pkg.version %> */',
+				sourceMap: true
+			},
+			main: {
+				files: {
+					'assets/js/sticky-tax.min.js': [
+						'assets/js/sticky-tax.js'
+					]
+				}
+			}
+		},
+
 		makepot: {
 			target: {
 				options: {
@@ -40,9 +54,10 @@ module.exports = function( grunt ) {
 	} );
 
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
+	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-wp-i18n' );
 
-	grunt.registerTask( 'build', [ 'i18n', 'copy' ] );
+	grunt.registerTask( 'build', [ 'i18n', 'uglify', 'copy' ] );
 	grunt.registerTask( 'i18n', [ 'makepot' ] );
 
 	grunt.util.linefeed = '\n';
