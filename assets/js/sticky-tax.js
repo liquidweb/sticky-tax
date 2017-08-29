@@ -5,6 +5,115 @@
  * @author  Liquid Web
  */
 
+( function ( window, document ) {
+	'use strict';
+
+	var categoryMetabox = document.getElementById( 'side-sortables' ),
+		termLists = {},
+
+		/**
+		 * Given a taxonomy name, return the corresponding list element.
+		 *
+		 * @param {string} tax - The taxonomy to retrieve.
+		 * @return {Element} The HTML Element object.
+		 */
+		getTaxonomyTermList = function ( tax ) {
+			if ( ! termLists[ tax ] ) {
+				termLists[ tax ] = document.querySelector( '#term-sticky-' + tax + '-group .term-sticky-list' );
+			}
+
+			return termLists[ tax ];
+		},
+
+		/**
+		 * Add a new term into the list of available taxonomy terms.
+		 *
+		 * @param {int}    id   - The taxonomy term ID.
+		 * @param {string} name - The name (label) for the term.
+		 * @param {string} tax  - The term's taxonomy.
+		 */
+		addItem = function ( id, name, tax ) {
+			var list = getTaxonomyTermList( tax ),
+				li = document.createElement( 'li' ),
+				label = document.createElement( 'label' ),
+				input = document.createElement( 'input' );
+
+			// Return early if we have nowhere to put the item.
+			if ( ! list ) {
+				return;
+			}
+
+			// Normalize values.
+			id   = parseInt( id, 10 );
+			name = name.trim();
+
+			// Construct each of the child nodes.
+			input.type = 'checkbox';
+			input.name = 'sticky-tax-term-id[]';
+			input.id = 'list-item-' + id;
+			input.value = id;
+
+			label.htmlFor = 'list-item-' + id;
+			label.classList.add( 'list-item-label' );
+			label.appendChild( input );
+			label.appendChild( document.createTextNode( name ) );
+
+			li.id = 'item-' + id;
+			li.dataset.termId = id;
+			li.dataset.termName = name;
+			li.classList.add( 'term-sticky-list-item' );
+			li.appendChild( label );
+
+			list.appendChild( li );
+		},
+
+		/**
+		 * Remove an item from the list of available sticky terms.
+		 *
+		 * @param {int}    id  - The taxonomy term ID.
+		 * @param {string} tax - The taxonomy the term belongs to.
+		 */
+		removeItem = function ( id, tax ) {
+			var list = getTaxonomyTermList( tax );
+
+			if ( ! list ) {
+				return;
+			}
+
+			list.querySelector( '[data-term-id="' + id + '"]' ).remove();
+		},
+
+		/**
+		 * Handle the toggling of sticky terms for hierarchical taxonomies.
+		 *
+		 * @param {Event} e - The event that triggered the callback.
+		 */
+		handleHierarchicalTaxonomies = function ( e ) {
+			var term = e.target,
+				tax;
+
+			// Only proceed if the change event happened on an input.
+			if ( 'INPUT' !== term.tagName || ! this.id ) {
+				return;
+			}
+
+			// Get the taxonomy from the container's ID.
+			tax = this.id.replace( /^taxonomy-/, '' ).trim();
+
+			if ( term.checked ) {
+				addItem( term.value, term.parentNode.innerText, tax );
+			} else {
+				removeItem( term.value, tax );
+			}
+		};
+
+	// Add event listeners for hierarchical taxonomy meta boxes.
+	document.querySelectorAll( '.categorydiv' ).forEach( function ( el ) {
+		el.addEventListener( 'change', handleHierarchicalTaxonomies );
+	} );
+
+} ) ( window, document, undefined );
+
 /**
  * Add our newly selected item to the box.
  *
@@ -111,7 +220,7 @@ jQuery( document ).ready( function($) {
 	$( 'div#side-sortables' ).divExists( function() {
 
 		// Look for the changing of an input.
-		$( 'ul.categorychecklist' ).on( 'change', 'input', function( event ) {
+		/*$( 'ul.categorychecklist' ).on( 'change', 'input', function( event ) {
 
 			// Set my term ID.
 			termID  = $( this ).attr( 'value' );
@@ -133,7 +242,7 @@ jQuery( document ).ready( function($) {
 				stickyTaxRemoveItem( termName, termType );
 			}
 
-		});
+		});*/
 	});
 
 	/**
