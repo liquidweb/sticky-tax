@@ -1,5 +1,5 @@
 === Sticky Tax ===
-Contributors: liquidweb, stevegrunwell
+Contributors: liquidweb, stevegrunwell, norcross
 Tags: sticky, taxonomies, sticky posts, categories, tags
 Requires at least: 4.6
 Tested up to: 4.8.1
