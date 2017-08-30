@@ -264,20 +264,8 @@ function register_scripts( $hook ) {
 	$file  = $debug ? 'sticky-tax' : 'sticky-tax.min';
 	$vers  = $debug ? null : STICKY_TAX_VERS;
 
-	wp_enqueue_script(
-		'sticky-tax-admin',
-		STICKY_TAX_URL . 'assets/js/' . $file . '.js',
-		array( 'jquery' ),
-		$vers,
-		true
-	);
+	wp_enqueue_script( 'sticky-tax-admin', STICKY_TAX_URL . 'assets/js/' . $file . '.js', null, $vers, true );
 
-	wp_enqueue_style(
-		'sticky-tax-admin',
-		STICKY_TAX_URL . 'assets/css/' . $file . '.css',
-		null,
-		$vers,
-		'all'
-	);
+	wp_enqueue_style( 'sticky-tax-admin', STICKY_TAX_URL . 'assets/css/' . $file . '.css', null, $vers, 'all' );
 }
 add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\register_scripts' );
