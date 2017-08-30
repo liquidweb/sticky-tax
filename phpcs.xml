@@ -42,6 +42,11 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 
+	<!-- The "//end foreach" comment doesn't really fit within the WP coding standards. -->
+	<rule ref="Squiz.Commenting.LongConditionClosingComment.Missing">
+		<severity>0</severity>
+	</rule>
+
 	<rule ref="WordPress-Extra">
 		<properties>
 			<property name="custom_test_class_whitelist" type="array" value="WP_Ajax_UnitTestCase"/>
