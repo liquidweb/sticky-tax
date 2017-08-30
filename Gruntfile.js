@@ -21,6 +21,19 @@ module.exports = function( grunt ) {
 			},
 		},
 
+		cssmin: {
+			options: {
+				sourceMap: true
+			},
+			target: {
+				files: {
+					'assets/css/sticky-tax.min.css': [
+						'assets/css/sticky-tax.css'
+					]
+				}
+			}
+		},
+
 		eslint: {
 			options: {
 				configFile: '.eslintrc'
@@ -62,11 +75,12 @@ module.exports = function( grunt ) {
 	} );
 
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
+	grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
 	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
 	grunt.loadNpmTasks( 'grunt-eslint' );
 	grunt.loadNpmTasks( 'grunt-wp-i18n' );
 
-	grunt.registerTask( 'build', [ 'eslint', 'i18n', 'uglify', 'copy' ] );
+	grunt.registerTask( 'build', [ 'eslint', 'i18n', 'cssmin', 'uglify', 'copy' ] );
 	grunt.registerTask( 'i18n', [ 'makepot' ] );
 
 	grunt.util.linefeed = '\n';
