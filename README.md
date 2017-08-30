@@ -20,8 +20,6 @@ After installing and activating Sticky Tax, a new "Sticky" meta box will appear 
 
 ![The Sticky Tax meta box on a WordPress post edit screen, showing a list of categories](plugin_assets/screenshot-1.jpg)
 
-Thanks to the powerful [Select2 library](https://select2.github.io), the list of terms can easily be filtered down via keyboard (a _must_ on sites with complex taxonomy structures)! Even better, Sticky Tax intelligently registers Select2, only loading the library if it hasn't already been registered by your theme or another plugin.
-
 
 ### On the front-end
 

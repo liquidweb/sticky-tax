@@ -4,7 +4,6 @@ wp-cli.local.yml
 assets/css/*.min.css
 assets/js/*.min.js
 dist/
-lib/
 node_modules/
 tests/coverage
 vendor
