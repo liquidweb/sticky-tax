@@ -115,13 +115,22 @@
 		 * @param {string} tax - The taxonomy the term belongs to.
 		 */
 		removeItem = function ( id, tax ) {
-			var list = getTaxonomyTermList( tax );
+			var list = getTaxonomyTermList( tax ),
+				item;
 
 			if ( ! list ) {
 				return;
 			}
 
-			list.querySelector( '[data-term-id="' + id + '"]' ).remove();
+			if ( isNaN( parseInt( id, 10 ) ) ) {
+				item = list.querySelector( '[data-term-name="' + id + '"]' )
+			} else {
+				item = list.querySelector( '[data-term-id="' + id + '"]' )
+			}
+
+			if ( item ) {
+				item.remove();
+			}
 
 			// Hide the group if there are no terms left in it.
 			if ( 0 === list.children.length ) {
