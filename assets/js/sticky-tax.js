@@ -28,15 +28,32 @@
 		/**
 		 * Given a term name and its taxonomy, return the term ID.
 		 *
-		 * If the value isn't available in the cache, an Ajax request will be made to WordPress in
-		 * order to retrieve it.
+		 * If the value isn't available in the cache, a new entry will be added with the name as
+		 * both the key and value.
 		 *
 		 * @param {string} name - The taxonomy term name.
 		 * @param {string} tax  - The taxonomy the term belongs to.
 		 * @return {int} The term ID, or 0 if no matching term was found.
 		 */
 		getTermIdByName = function ( name, tax ) {
+			if ( ! stickyTax.terms[ tax ][ name ] ) {
+				stickyTax.terms[ tax ][ name ] = name;
+			}
+
 			return stickyTax.terms[ tax ][ name ];
+		},
+
+		/**
+		 * Given a string, prepare a version that can be used in HTML class names.
+		 *
+		 * The goal isn't to create a "slug", necessarily, but rather a value that can be used when
+		 * creating IDs for terms that don't have numeric IDs (yet).
+		 *
+		 * @param {string} str - The string to work on.
+		 * @return {string} A version of the string that's safe to use in ID attributes.
+		 */
+		sanitizeClassName = function ( str ) {
+			return str.replace( /[^0-9A-Z-_]/i, '' );
 		},
 
 		/**
@@ -52,30 +69,36 @@
 				li = document.createElement( 'li' ),
 				label = document.createElement( 'label' ),
 				input = document.createElement( 'input' ),
-				inputId = 'list-item-' + id;
+				inputId, newTag, sanitizedClassName;
+
+			// Normalize values.
+			id      = parseInt( id, 10 );
+			name    = name.trim();
+			newTag  = isNaN( id );
+
+			if ( newTag ) {
+				sanitizedClassName = sanitizeClassName( name );
+			}
+			inputId = 'list-item-' + ( newTag ? sanitizedClassName : id );
 
 			// Return early if we have nowhere to put the item or it already exists.
 			if ( ! list || null !== document.getElementById( inputId ) ) {
 				return;
 			}
 
-			// Normalize values.
-			id   = parseInt( id, 10 );
-			name = name.trim();
-
 			// Construct each of the child nodes.
 			input.type = 'checkbox';
 			input.name = 'sticky-tax-term-id[]';
 			input.id = inputId;
-			input.value = id;
+			input.value = newTag ? tax + ':' + name : id;
 
 			label.htmlFor = inputId;
 			label.classList.add( 'list-item-label' );
 			label.appendChild( input );
 			label.appendChild( document.createTextNode( name ) );
 
-			li.id = 'item-' + id;
-			li.dataset.termId = id;
+			li.id = 'item-' + ( newTag ? sanitizedClassName : id );
+			li.dataset.termId = newTag ? sanitizedClassName : id;
 			li.dataset.termName = name;
 			li.classList.add( 'term-sticky-list-item' );
 			li.appendChild( label );

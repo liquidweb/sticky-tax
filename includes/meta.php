@@ -281,6 +281,22 @@ function save_post( $post_id ) {
 
 	// Save new sticky assignments.
 	foreach ( $_POST['sticky-tax-term-id'] as $term_id ) {
+		if ( ! is_numeric( $term_id ) ) {
+			$term_parts = explode( ':', $term_id, 2 );
+
+			if ( 2 !== count( $term_parts ) ) {
+				continue;
+			}
+
+			$term = get_term_by( 'name', $term_parts[1], $term_parts[0] );
+
+			if ( false === $term ) {
+				continue;
+			}
+
+			$term_id = $term->term_id;
+		}
+
 		sticky_post_for_term( $post_id, (int) $term_id );
 
 		wp_cache_delete( 'term_' . (int) $term_id, 'sticky-tax' );

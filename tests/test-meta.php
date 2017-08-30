@@ -181,6 +181,52 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
 	}
 
+	public function test_save_post_with_string_values() {
+		$post_id = $this->factory()->post->create();
+		$tag     = self::factory()->tag->create_and_get();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ 'post_tag:' . $tag->name ],
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $tag->term_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_checks_exploded_size_when_handling_string_values() {
+		$post_id = $this->factory()->post->create();
+		$tag     = self::factory()->tag->create_and_get();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ $tag->name ], // Does not include a taxonomy.
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty(
+			get_post_meta( $post_id, '_sticky_tax' ),
+			'Without a taxonomy prefix, save_post() should not attempt to look up a term name.'
+		);
+	}
+
+	public function test_save_post_handles_non_existent_strings() {
+		$post_id = $this->factory()->post->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ 'post_tag:This Does Not Exist' ],
+		];
+
+		$this->assertFalse( get_term_by( 'name', 'This Does Not Exist', 'post_tag' ) );
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty(
+			get_post_meta( $post_id, '_sticky_tax' ),
+			'We cannot sticky to a term that does not exist.'
+		);
+	}
+
 	public function test_save_post_can_remove_all_terms() {
 		$post_id = $this->factory()->post->create();
 		$cat_id  = self::factory()->category->create();
