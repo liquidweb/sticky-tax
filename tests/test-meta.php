@@ -210,6 +210,21 @@ class MetaTest extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_save_post_handles_additional_colons_in_string_values() {
+		$post_id = $this->factory()->post->create();
+		$tag     = self::factory()->tag->create_and_get( [
+			'name' => 'Colons: This one uses many: So many.',
+		] );
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ 'post_tag:' . $tag->name ],
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $tag->term_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
 	public function test_save_post_handles_non_existent_strings() {
 		$post_id = $this->factory()->post->create();
 		$_POST   = [
