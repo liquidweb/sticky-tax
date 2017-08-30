@@ -35,6 +35,8 @@
 		 * @return {string} A version of the string that's safe to use in ID attributes.
 		 */
 		sanitizeClassName = function ( str ) {
+			str = '' + str;
+
 			return str.replace( /[^0-9A-Z-_]/gi, '' );
 		},
 
