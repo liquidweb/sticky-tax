@@ -134,7 +134,7 @@
 
 			// Hide the group if there are no terms left in it.
 			if ( 0 === list.children.length ) {
-				list.parentElement.setAttribute( 'hidden', true );
+				list.parentElement.setAttribute( 'hidden', '' );
 			}
 		},
 

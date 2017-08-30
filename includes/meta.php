@@ -160,7 +160,7 @@ function render_meta_box( $post, $meta_box ) {
 ?>
 
 	<div class="term-sticky-list-wrap">
-		<p class="description"><?php esc_html_e( '"Stick" this post to the top of the archive pages for the selected term(s)', 'sticky-tax' ); ?></p>
+		<p class="description"><?php esc_html_e( '"Stick" this post to the top of the archive pages for the selected term(s):', 'sticky-tax' ); ?></p>
 		<?php foreach ( $options as $type => $data ) : ?>
 			<?php $hidden = empty( $data['items'] ); ?>
 
