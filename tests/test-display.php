@@ -218,7 +218,10 @@ class DisplayTest extends WP_UnitTestCase {
 		Meta\sticky_post_for_term( $post_id, $cat_id );
 
 		$this->go_to( get_term_link( $cat_id, 'category' ) );
-		$this->assertContains( 'sticky-tax', Display\append_sticky_class( [], [], $post_id ) );
+		$result = Display\append_sticky_class( [], [], $post_id );
+
+		$this->assertContains( 'sticky-tax', $result );
+		$this->assertContains( 'sticky', $result );
 	}
 
 	public function test_append_sticky_class_only_applies_on_term_page() {
