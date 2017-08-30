@@ -142,7 +142,7 @@ class MetaTest extends WP_UnitTestCase {
 		$response = Meta\get_non_hierarchical_term_mapping( $post );
 
 		$this->assertEquals( [
-			$term->term_id => $term->name,
+			$term->name => $term->term_id,
 		], $response['post_tag'] );
 	}
 
@@ -340,7 +340,7 @@ class MetaTest extends WP_UnitTestCase {
 		Meta\register_scripts( 'post.php' );
 
 		$this->assertContains( '"post_tag":' . wp_json_encode( [
-			$tag->term_id => $tag->name,
+			$tag->name => $tag->term_id,
 		] ), wp_scripts()->get_data( 'sticky-tax-admin', 'data' ) );
 	}
 
