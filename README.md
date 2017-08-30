@@ -47,9 +47,9 @@ Out of the box, Sticky Tax only appears on the **post** edit screen. However, yo
  * @return array The filtered $post_types array.
  */
 function add_sticky_tax_to_my_cpt( $post_types ) {
-	$post_types[] = 'my-cpt';
+    $post_types[] = 'my-cpt';
 
-	return $post_types;
+    return $post_types;
 }
 add_filter( 'stickytax_post_types', 'add_sticky_tax_to_my_cpt' );
 ```
@@ -66,7 +66,49 @@ Sticky Tax tries to be helpful, and will automatically include terms from any ta
  * @return array The filtered $taxonomies array.
  */
 function remove_tags_from_sticky_tax( $taxonomies ) {
-	return array_diff( $taxonomies, array( 'post_tag' ) );
+  return array_diff( $taxonomies, array( 'post_tag' ) );
 }
 add_filter( 'stickytax_taxonomies', 'remove_tags_from_sticky_tax' );
+```
+
+### Working with custom taxonomy term meta boxes
+
+If you've replaced the default category/tag meta boxes for either built-in or custom taxonomies, Sticky Tax may not be able to automatically mirror changes to the selected terms in the Sticky Tax meta box.
+
+Fortunately, Sticky Tax exposes a simple API for adding or removing items from its list, via the `window.stickyTax.addItem()` and `window.stickyTax.removeItem()` methods.
+
+#### Example
+
+Let's say you have a list of pre-defined genres that posts can be assigned to, and the markup for the metabox looks something like this:
+
+```html
+<div id="my-custom-meta-box">
+  <div class="inner">
+    <ul>
+      <li><label><input name="genre[]" type="checkbox" value="1"> Action</label></li>
+      <li><label><input name="genre[]" type="checkbox" value="2"> Comedy</label></li>
+      <li><label><input name="genre[]" type="checkbox" value="3"> Horror</label></li>
+      <li><label><input name="genre[]" type="checkbox" value="4"> Romance</label></li>
+    </ul>
+  </div>
+</div>
+```
+
+You could listen for terms to be selected or deselected using the following code snippet:
+
+```js
+document.getElementById('my-custom-meta-box').addEventListener('change', function (e) {
+  var el = e.target;
+
+  // Return early if the change event isn't on a checkbox.
+  if ('INPUT' !== el.tagName) {
+    return;
+  }
+
+  if (el.checked) {
+    window.stickyTax.addItem(el.value, genre.parentElement.innerText, 'genre');
+  } else {
+    window.stickyTax.removeItem(el.value, 'genre');
+  }
+});
 ```

@@ -197,4 +197,15 @@
 		el.parentElement.addEventListener( 'mousedown', handleTagClouds );
 	} );
 
+	/**
+	 * Expose the addItem() and removeItem() functions through the window.stickyTax object.
+	 *
+	 * This is designed to allow developers who have non-standard taxonomy interfaces to integrate
+	 * with Sticky Tax.
+	 */
+	window.stickyTax = {
+		addItem: addItem,
+		removeItem: removeItem
+	};
+
 } ( window, document ) );
