@@ -119,37 +119,6 @@ function register_meta_boxes( $post_type, $post ) {
 add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 10, 2 );
 
 /**
- * Get an array of all terms from non-hierarchical taxonomies that the given $post supports.
- *
- * @param WP_Post $post_type The current post type.
- * @return array A nested array, keyed by the taxonomy.
- */
-function get_non_hierarchical_term_mapping( $post_type ) {
-	$taxonomies = get_taxonomies_for_object( $post_type );
-	$terms      = array();
-
-	if ( ! $taxonomies ) {
-		return $terms;
-	}
-
-	foreach ( $taxonomies as $tax => $object ) {
-
-		// Filter out hierarchical taxonomies.
-		if ( $object->hierarchical ) {
-			continue;
-		}
-
-		$terms[ $tax ] = array_flip( get_terms( array(
-			'taxonomy'   => $tax,
-			'hide_empty' => false,
-			'fields'     => 'id=>name',
-		) ) );
-	}
-
-	return $terms;
-}
-
-/**
  * Render the Sticky meta box on a post edit screen.
  *
  * @param WP_Post $post     The current post object.
@@ -333,12 +302,6 @@ function register_scripts( $hook ) {
 		$vers,
 		true
 	);
-
-	// Include the non-hierarchical terms, mapped to their IDs.
-	$terms = get_non_hierarchical_term_mapping( get_post_type() );
-	wp_localize_script( 'sticky-tax-admin', 'stickyTax', array(
-		'terms' => $terms,
-	) );
 
 	wp_enqueue_style(
 		'sticky-tax-admin',

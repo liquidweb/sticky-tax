@@ -26,24 +26,6 @@
 		},
 
 		/**
-		 * Given a term name and its taxonomy, return the term ID.
-		 *
-		 * If the value isn't available in the cache, a new entry will be added with the name as
-		 * both the key and value.
-		 *
-		 * @param {string} name - The taxonomy term name.
-		 * @param {string} tax  - The taxonomy the term belongs to.
-		 * @return {int} The term ID, or 0 if no matching term was found.
-		 */
-		getTermIdByName = function ( name, tax ) {
-			if ( ! stickyTax.terms[ tax ][ name ] ) {
-				stickyTax.terms[ tax ][ name ] = name;
-			}
-
-			return stickyTax.terms[ tax ][ name ];
-		},
-
-		/**
 		 * Given a string, prepare a version that can be used in HTML class names.
 		 *
 		 * The goal isn't to create a "slug", necessarily, but rather a value that can be used when
@@ -53,7 +35,20 @@
 		 * @return {string} A version of the string that's safe to use in ID attributes.
 		 */
 		sanitizeClassName = function ( str ) {
-			return str.replace( /[^0-9A-Z-_]/i, '' );
+			return str.replace( /[^0-9A-Z-_]/gi, '' );
+		},
+
+		/**
+		 * Given a term and its taxonomy, return the ID that should be used.
+		 *
+		 * @param {string|int} id  - Either the term ID the term name.
+		 * @param {string}     tax - The taxonomy name. Only required if the provided ID is a string.
+		 * @return {string|int} Either an integer term ID or a concatenation of {tax}:{id}.
+		 */
+		getTermValue = function ( id, tax ) {
+			var int = parseInt( id, 10 );
+
+			return isNaN( int ) || ! int ? tax.trim() + ':' + id.trim() : int;
 		},
 
 		/**
@@ -69,36 +64,39 @@
 				li = document.createElement( 'li' ),
 				label = document.createElement( 'label' ),
 				input = document.createElement( 'input' ),
-				inputId, newTag, sanitizedClassName;
+				newTag = isNaN( parseInt( id, 10 ) ),
+				termVal, termId, inputId;
 
-			// Normalize values.
-			id      = parseInt( id, 10 );
-			name    = name.trim();
-			newTag  = isNaN( id );
-
-			if ( newTag ) {
-				sanitizedClassName = sanitizeClassName( name );
+			// Non-numeric ID, but we already have it in our list.
+			if ( newTag && list.querySelector( '[data-term-name="' + name.trim() + '"]' ) ) {
+				return;
 			}
-			inputId = 'list-item-' + ( newTag ? sanitizedClassName : id );
+
+			// Assemble some other helpful variables.
+			termVal = getTermValue( newTag ? name : id, tax ),
+			termId = sanitizeClassName( termVal ),
+			inputId = 'list-item-' + termId;
 
 			// Return early if we have nowhere to put the item or it already exists.
 			if ( ! list || null !== document.getElementById( inputId ) ) {
 				return;
 			}
 
+			name = name.trim();
+
 			// Construct each of the child nodes.
 			input.type = 'checkbox';
 			input.name = 'sticky-tax-term-id[]';
 			input.id = inputId;
-			input.value = newTag ? tax + ':' + name : id;
+			input.value = termVal;
 
 			label.htmlFor = inputId;
 			label.classList.add( 'list-item-label' );
 			label.appendChild( input );
 			label.appendChild( document.createTextNode( name ) );
 
-			li.id = 'item-' + ( newTag ? sanitizedClassName : id );
-			li.dataset.termId = newTag ? sanitizedClassName : id;
+			li.id = 'item-' + termId;
+			li.dataset.termId = termId;
 			li.dataset.termName = name;
 			li.classList.add( 'term-sticky-list-item' );
 			li.appendChild( label );
@@ -109,7 +107,8 @@
 		/**
 		 * Remove an item from the list of available sticky terms.
 		 *
-		 * @param {int}    id  - The taxonomy term ID.
+		 * @param {int|string} id  - The taxonomy term ID. For terms without IDs, this can also be
+		 *                           the string, prefixed with the taxonomy (e.g. "post_tag:My Tag").
 		 * @param {string} tax - The taxonomy the term belongs to.
 		 */
 		removeItem = function ( id, tax ) {
@@ -164,11 +163,11 @@
 
 					name = term.lastChild.textContent;
 
-					addItem( getTermIdByName( name, tax ), name, tax );
+					addItem( null, name, tax );
 				} );
 
 			} else if ( e.target.classList.contains( 'ntdelbutton' ) ) {
-				removeItem( getTermIdByName( e.target.parentNode.lastChild.textContent, tax ), tax );
+				removeItem( e.target.parentNode.lastChild.textContent, tax, tax );
 			}
 		},
 
@@ -181,7 +180,7 @@
 			var tax = this.querySelector( '.tagsdiv' ).id;
 
 			if ( e.target.classList.contains( 'tag-cloud-link' ) ) {
-				addItem( getTermIdByName( e.target.innerText, tax ), e.target.innerText, tax );
+				addItem( null, e.target.innerText, tax );
 			}
 		};
 
