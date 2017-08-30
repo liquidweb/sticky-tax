@@ -157,65 +157,34 @@ function render_meta_box( $post, $meta_box ) {
 	if ( empty( $options ) ) {
 		return;
 	}
+?>
 
-	// Wrap the whole thing in a div.
-	echo '<div class="term-sticky-list-wrap">';
+	<div class="term-sticky-list-wrap">
+		<?php foreach ( $options as $type => $data ) : ?>
+			<?php $hidden = empty( $data['items'] ); ?>
 
-	// Loop the grouped term items.
-	foreach ( $options as $type => $data ) {
+			<div id="term-sticky-<?php echo esc_attr( $type ); ?>-group" class="term-sticky-list-group" data-term-type="<?php echo esc_attr( $type ); ?>" <?php echo $hidden ? esc_attr( 'hidden' ) : ''; ?>>
+				<h4><?php echo esc_html( $data['label'] ); ?></h4>
+				<ul id="list-<?php echo esc_attr( $type ); ?>" class="term-sticky-list">
+					<?php if ( ! $hidden ) : ?>
+						<?php foreach ( (array) $data['items'] as $term_id => $term_name ) : ?>
 
-		// Set a class for the message.
-		$class  = ! empty( $data['items'] ) ? 'term-sticky-list-hide' : 'term-sticky-list-show';
+							<li id="item-<?php echo absint( $term_id ); ?>" data-term-id="<?php echo absint( $term_id ); ?>" data-term-name="<?php echo esc_attr( $term_name ); ?>" class="term-sticky-list-item">
+								<label for="list-item-<?php echo absint( $term_id ); ?>" class="list-item-label">
+									<input type="checkbox" name="sticky-tax-term-id[]" class="list-item-input" id="list-item-<?php echo absint( $term_id ); ?>" value="<?php echo absint( $term_id ); ?>" <?php checked( in_array( $term_id, $selected, true ), true ); ?>>
+									<?php echo esc_html( $term_name ); ?>
+								</label>
+							</li>
 
-		// Wrap each group in a div.
-		echo '<div id="term-sticky-' . esc_attr( $type ) . '-group" class="term-sticky-list-group" data-term-type="' . esc_attr( $type ) . '" >';
+						<?php endforeach; ?>
+					<?php endif; ?>
+				</ul>
+			</div>
 
-			// Handle my label.
-			echo '<h4>' . esc_html( $data['label'] ) . '</h4>';
+		<?php endforeach; ?>
+	</div>
 
-			// Open my unordered list wrapper.
-			echo '<ul id="list-' . esc_attr( $type ) . '" class="term-sticky-list term-sticky-list-' . esc_attr( $type ) . '">';
-
-		// Now check we have items to show.
-		if ( ! empty( $data['items'] ) ) {
-
-			// Now loop the items into a key/value pair.
-			foreach ( $data['items'] as $term_id => $term_name ) {
-
-				// Wrap each checkbox in a list item.
-				echo '<li id="item-' . absint( $term_id ) . '" data-term-id="' . absint( $term_id ) . '" data-term-name="' . esc_attr( $term_name ) . '" class="term-sticky-list-item">';
-
-					// Opening with the label.
-					echo '<label class="list-item-label" for="list-item-' . absint( $term_id ) . '">';
-
-						// The checkbox itself.
-						echo '<input type="checkbox" name="sticky-tax-term-id[]" class="list-item-input" id="list-item-' . absint( $term_id ) . '" value="' . absint( $term_id ) . '" ' . checked( in_array( $term_id, $selected, true ), true, false ) . ' />';
-
-						// Echo out the text.
-						echo esc_html( $term_name );
-
-					// Close the label.
-					echo '</label>';
-
-				// And close the list item.
-				echo '</li>';
-			}//end foreach
-		}//end if
-
-			// Close my unordered list wrapper.
-			echo '</ul>';
-
-			// If we had no items, show the message.
-			echo '<p class="term-sticky-list-empty ' . esc_attr( $class ) . '">' . esc_html__( 'No terms have been applied to this post.', 'sticky-tax' ) . '</p>';
-
-		// Close my group div.
-		echo '</div>';
-	}//end foreach
-
-	// Close my div.
-	echo '</div>';
-
-	// And my nonce.
+<?php
 	wp_nonce_field( 'sticky-tax', 'sticky-tax-nonce' );
 }
 

@@ -104,6 +104,7 @@
 			li.appendChild( label );
 
 			list.appendChild( li );
+			list.parentElement.removeAttribute( 'hidden' );
 		},
 
 		/**
@@ -121,6 +122,11 @@
 			}
 
 			list.querySelector( '[data-term-id="' + id + '"]' ).remove();
+
+			// Hide the group if there are no terms left in it.
+			if ( 0 === list.children.length ) {
+				list.parentElement.setAttribute( 'hidden', true );
+			}
 		},
 
 		/**
