@@ -97,6 +97,7 @@ function append_sticky_class( $classes, $class, $post_id ) {
 	}
 
 	if ( in_array( $post_id, get_sticky_posts_for_term( get_queried_object_id() ), true ) ) {
+		$classes[] = 'sticky';
 		$classes[] = 'sticky-tax';
 	}
 
