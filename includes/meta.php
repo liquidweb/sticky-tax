@@ -57,6 +57,13 @@ function get_taxonomies_for_object( $post_type ) {
 		}
 	}
 
+	// Check the filter for excluding post formats.
+	$exclude    = apply_filters( 'stickytax_exclude_post_formats', true );
+
+	if ( ! empty( $exclude ) && isset( $taxonomies['post_format'] ) ) {
+		unset( $taxonomies['post_format'] );
+	}
+
 	/**
 	 * Retrieve an array of taxonomies that may possess sticky posts.
 	 *
@@ -214,7 +221,7 @@ function save_post( $post_id ) {
 	// Save new sticky assignments.
 	foreach ( $_POST['sticky-tax-term-id'] as $term_id ) {
 		if ( ! is_numeric( $term_id ) ) {
-			$term_parts = explode( ':', $term_id, 2 );
+			$term_parts = explode( ':', sanitize_text_field( $term_id ), 2 );
 
 			if ( 2 !== count( $term_parts ) ) {
 				continue;
