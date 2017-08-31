@@ -74,6 +74,11 @@ $ composer test-coverage
 Note that [both the Xdebug and tokenizer PHP extensions must be installed and active](https://phpunit.de/manual/current/en/textui.html) on the machine running the tests. If you're building in VVV, [both are available, but Xdebug is disabled by default](https://github.com/Varying-Vagrant-Vagrants/VVV/wiki/Code-Debugging#meet-xdebug); you can activate it by SSH-ing into VVV and running `xdebug_on`.
 
 
+## Sample taxonomies
+
+If you need custom taxonomies registered for testing purposes, you can copy `tests/test-files/custom-taxonomies.php` into your development environment's `wp-content/mu-plugins` directory. This will register two new taxonomies — one hierarchal and one non-hierarchal — for testing purposes.
+
+
 ## Contributors
 
 Sticky Tax was built and is maintained by [Liquid Web](https://www.liquidweb.com).

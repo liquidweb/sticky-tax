@@ -10,7 +10,6 @@ module.exports = function( grunt ) {
 			main: {
 				src: [
 					'includes/**',
-					'lib/**',
 					'languages/**',
 					'composer.json',
 					'CHANGELOG.md',
@@ -20,6 +19,42 @@ module.exports = function( grunt ) {
 				],
 				dest: 'dist/'
 			},
+		},
+
+		cssmin: {
+			options: {
+				sourceMap: true
+			},
+			target: {
+				files: {
+					'assets/css/sticky-tax.min.css': [
+						'assets/css/sticky-tax.css'
+					]
+				}
+			}
+		},
+
+		eslint: {
+			options: {
+				configFile: '.eslintrc'
+			},
+			target: [
+				'assets/js/sticky-tax.js'
+			]
+		},
+
+		uglify: {
+			options: {
+				banner: '/*! Sticky Tax - v<%= pkg.version %> */',
+				sourceMap: true
+			},
+			main: {
+				files: {
+					'assets/js/sticky-tax.min.js': [
+						'assets/js/sticky-tax.js'
+					]
+				}
+			}
 		},
 
 		makepot: {
@@ -40,9 +75,12 @@ module.exports = function( grunt ) {
 	} );
 
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
+	grunt.loadNpmTasks( 'grunt-contrib-cssmin' );
+	grunt.loadNpmTasks( 'grunt-contrib-uglify' );
+	grunt.loadNpmTasks( 'grunt-eslint' );
 	grunt.loadNpmTasks( 'grunt-wp-i18n' );
 
-	grunt.registerTask( 'build', [ 'i18n', 'copy' ] );
+	grunt.registerTask( 'build', [ 'eslint', 'i18n', 'cssmin', 'uglify', 'copy' ] );
 	grunt.registerTask( 'i18n', [ 'makepot' ] );
 
 	grunt.util.linefeed = '\n';

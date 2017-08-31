@@ -16,6 +16,10 @@ class CoreTest extends WP_UnitTestCase {
 		$this->assertTrue( defined( 'STICKY_TAX_URL' ) );
 	}
 
+	public function test_defines_vers_constant() {
+		$this->assertTrue( defined( 'STICKY_TAX_VERS' ) );
+	}
+
 	public function test_loads_textdomain() {
 		$called = false;
 
