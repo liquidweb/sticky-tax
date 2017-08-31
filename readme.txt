@@ -27,14 +27,14 @@ With Sticky Tax, Chris can highlight the most important posts in a category, whe
 
 === Usage ===
 
-After installing and activating Sticky Tax, a new "Sticky" meta box will appear on the post edit screen, with a list of terms for any public taxonomies registered on your site.
+After installing and activating Sticky Tax, a new "Promote Post" meta box will appear on the post edit screen, with a list of terms for any public taxonomies registered on your site.
 
 ![The Sticky Tax meta box on a WordPress post edit screen, showing a list of categories](plugin_assets/screenshot-1.jpg)
 
 
 ==== On the front-end ====
 
-Once a post has been made sticky for a category, it will be forced to the front of the list when users visit the category archive. Each sticky post even gets a `.sticky-tax` class added to it, enabling you to apply custom styling for your sticky content!
+archive. Each sticky post even gets a `.sticky-tax` class added to it, enabling you to apply custom styling for your sticky content!
 
 ![A post, made sticky via Sticky Tax, styled separately and at the top of the category archive page](plugin_assets/screenshot-2.jpg)
 

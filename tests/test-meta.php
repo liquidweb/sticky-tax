@@ -109,10 +109,8 @@ class MetaTest extends WP_UnitTestCase {
 	public function test_register_meta_boxes_applies_post_type_filter() {
 		global $wp_meta_boxes;
 
-		$cpt = uniqid();
-
-		add_filter( 'stickytax_post_types', function ( $post_types ) use ( $cpt ) {
-			$post_types[] = $cpt;
+		add_filter( 'stickytax_post_types', function ( $post_types ) {
+			$post_types[] = 'page';
 
 			return $post_types;
 		} );
@@ -124,7 +122,7 @@ class MetaTest extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey(
 			'sticky-tax',
-			$wp_meta_boxes[ $cpt ]['side']['default'],
+			$wp_meta_boxes['page']['side']['default'],
 			'The stickytax_post_types filter should be applied when registering meta boxes.'
 		);
 	}

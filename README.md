@@ -16,14 +16,14 @@ With Sticky Tax, Chris can highlight the most important posts in a category, whe
 
 ## Usage
 
-After installing and activating Sticky Tax, a new "Sticky" meta box will appear on the post edit screen, with a list of terms for any public taxonomies registered on your site.
+After installing and activating Sticky Tax, a new "Promote Post" meta box will appear on the post edit screen, with a list of terms that have been assigned to the current post.
 
 ![The Sticky Tax meta box on a WordPress post edit screen, showing a list of categories](plugin_assets/screenshot-1.jpg)
 
 
 ### On the front-end
 
-Once a post has been made sticky for a category, it will be forced to the front of the list when users visit the category archive. Each sticky post even gets a `.sticky-tax` class added to it, enabling you to apply custom styling for your sticky content!
+Once a post has been made sticky within a taxonomy term (category, tag, etc.), it will be forced to the front of the list when users visit the term archive. Each sticky post even gets a `.sticky-tax` class added to it, enabling you to apply custom styling for your sticky content!
 
 ![A post, made sticky via Sticky Tax, styled separately and at the top of the category archive page](plugin_assets/screenshot-2.jpg)
 
@@ -54,7 +54,7 @@ add_filter( 'stickytax_post_types', 'add_sticky_tax_to_my_cpt' );
 
 ### Modifying the taxonomies included in Sticky Tax
 
-Sticky Tax tries to be helpful, and will automatically include terms from any taxonomy [that has been registered as "public"](https://developer.wordpress.org/reference/functions/register_taxonomy/#parameters) for that post type. If you need to add or remove taxonomies from the list, you may do so via the `stickytax_taxonomies` filter:
+Sticky Tax tries to be helpful, and will automatically add support for terms from any taxonomy [that has been registered as "public"](https://developer.wordpress.org/reference/functions/register_taxonomy/#parameters) for that post type. If you need to add or remove taxonomies from the list, you may do so via the `stickytax_taxonomies` filter:
 
 ```php
 /**
@@ -64,7 +64,9 @@ Sticky Tax tries to be helpful, and will automatically include terms from any ta
  * @return array The filtered $taxonomies array.
  */
 function remove_tags_from_sticky_tax( $taxonomies ) {
-  return array_diff( $taxonomies, array( 'post_tag' ) );
+  unset( $taxonomies['post_tag'] );
+
+  return $taxonomies;
 }
 add_filter( 'stickytax_taxonomies', 'remove_tags_from_sticky_tax' );
 ```
