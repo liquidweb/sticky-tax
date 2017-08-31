@@ -1,0 +1,17 @@
+.term-sticky-list-wrap .term-sticky-list-group {
+	padding-top: 10px;
+}
+
+.term-sticky-list-wrap > div:not(hidden) + div:not(hidden) {
+	margin-top: 10px;
+	border-top: 1px dotted #ddd;
+}
+
+.term-sticky-list-wrap h4 {
+	margin: 0 0 10px;
+	font-size: 1.1em;
+}
+
+.term-sticky-list-wrap .term-sticky-list {
+	margin: 0;
+}

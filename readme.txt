@@ -1,8 +1,9 @@
 === Sticky Tax ===
-Contributors: liquidweb, stevegrunwell
+Contributors: liquidweb, stevegrunwell, norcross
 Tags: sticky, taxonomies, sticky posts, categories, tags
 Requires at least: 4.6
 Tested up to: 4.8.1
+Requires PHP: 5.3
 Stable tag: 1.0.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
@@ -29,8 +30,6 @@ With Sticky Tax, Chris can highlight the most important posts in a category, whe
 After installing and activating Sticky Tax, a new "Sticky" meta box will appear on the post edit screen, with a list of terms for any public taxonomies registered on your site.
 
 ![The Sticky Tax meta box on a WordPress post edit screen, showing a list of categories](plugin_assets/screenshot-1.jpg)
-
-Thanks to the powerful [Select2 library](https://select2.github.io), the list of terms can easily be filtered down via keyboard (a _must_ on sites with complex taxonomy structures)! Even better, Sticky Tax intelligently registers Select2, only loading the library if it hasn't already been registered by your theme or another plugin.
 
 
 ==== On the front-end ====
