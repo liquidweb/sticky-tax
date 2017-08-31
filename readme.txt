@@ -3,6 +3,7 @@ Contributors: liquidweb, stevegrunwell
 Tags: sticky, taxonomies, sticky posts, categories, tags
 Requires at least: 4.6
 Tested up to: 4.8.1
+Requires PHP: 5.3
 Stable tag: 1.0.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
