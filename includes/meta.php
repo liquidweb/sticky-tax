@@ -147,10 +147,10 @@ function render_meta_box( $post, $meta_box ) {
 		$items  = empty( $terms ) || is_wp_error( $terms ) ? '' : wp_list_pluck( $terms, 'name', 'term_id' );
 
 		// Set my options array accordingly.
-		$options[ $tax_name ] = [
+		$options[ $tax_name ] = array(
 			'label' => $tax_label,
 			'items' => $items,
-		];
+		);
 	}
 
 	// Bail without options data to show.
