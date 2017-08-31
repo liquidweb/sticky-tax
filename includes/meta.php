@@ -58,7 +58,7 @@ function get_taxonomies_for_object( $post_type ) {
 	}
 
 	// Check the filter for excluding post formats.
-	$exclude    = apply_filters( 'stickytax_exclude_post_formats', true );
+	$exclude = apply_filters( 'stickytax_exclude_post_formats', true );
 
 	if ( ! empty( $exclude ) && isset( $taxonomies['post_format'] ) ) {
 		unset( $taxonomies['post_format'] );
