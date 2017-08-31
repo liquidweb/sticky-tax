@@ -20,10 +20,10 @@ class MetaTest extends WP_UnitTestCase {
 
 		$wp_meta_boxes['post']['side']['default'] = [];
 
-		wp_dequeue_script( 'select2' );
-		wp_dequeue_style( 'select2' );
-		wp_deregister_script( 'select2' );
-		wp_deregister_style( 'select2' );
+		wp_dequeue_script( 'sticky-tax-admin' );
+		wp_dequeue_style( 'sticky-tax-admin' );
+		wp_deregister_script( 'sticky-tax-admin' );
+		wp_deregister_style( 'sticky-tax-admin' );
 	}
 
 	public function test_can_make_post_sticky_for_term() {
@@ -66,24 +66,44 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertCount( 1, get_post_meta( $post_id, '_sticky_tax' ) );
 	}
 
-	public function test_register_meta_boxes_applies_taxonomy_filter() {
-		global $wp_meta_boxes;
+	public function test_get_taxonomies_for_object_filters_out_private_taxonomies() {
+		register_taxonomy( 'private-test-taxonomy', 'post', [
+			'public' => false,
+		] );
 
-		$tax = uniqid();
+		$this->assertArrayHasKey(
+			'private-test-taxonomy',
+			get_object_taxonomies( 'post', 'array' ),
+			'The temporary private taxonomy should be among taxonomies for the "post" post type.'
+		);
+
+		$this->assertArrayNotHasKey(
+			'private-test-taxonomy',
+			Meta\get_taxonomies_for_object( 'post' ),
+			'Private taxonomies should not be included by default when calling get_taxonomies_for_object().'
+		);
+	}
+
+	public function test_get_taxonomies_for_object_filters_taxonomies() {
+		$tax = get_taxonomy( 'category' );
 
 		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) use ( $tax ) {
-			$taxonomies[] = $tax;
-
-			return $taxonomies;
+			return [
+				'category' => $tax,
+			];
 		} );
 
-		Meta\register_meta_boxes();
+		$this->assertEquals( [
+			'category' => $tax,
+		], Meta\get_taxonomies_for_object( 'post' ) );
+	}
 
-		$this->assertContains(
-			$tax,
-			$wp_meta_boxes['post']['side']['default']['sticky-tax']['args'],
-			'The stickytax_taxonomies filter should be applied when registering meta boxes.'
-		);
+	public function test_get_taxonomies_for_object_always_returns_an_array() {
+		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) {
+			return [];
+		} );
+
+		$this->assertEquals( [], Meta\get_taxonomies_for_object( 'post' ) );
 	}
 
 	public function test_register_meta_boxes_applies_post_type_filter() {
@@ -97,7 +117,10 @@ class MetaTest extends WP_UnitTestCase {
 			return $post_types;
 		} );
 
-		Meta\register_meta_boxes();
+		$post = $this->factory->post->create_and_get();
+		$post_type = $post->post_type;
+
+		Meta\register_meta_boxes( $post, $post_type );
 
 		$this->assertArrayHasKey(
 			'sticky-tax',
@@ -113,7 +136,10 @@ class MetaTest extends WP_UnitTestCase {
 			return [];
 		} );
 
-		Meta\register_meta_boxes();
+		$post = $this->factory->post->create_and_get();
+		$post_type = $post->post_type;
+
+		Meta\register_meta_boxes( $post, $post_type );
 
 		$this->assertArrayNotHasKey(
 			'sticky-tax',
@@ -133,31 +159,14 @@ class MetaTest extends WP_UnitTestCase {
 		$output = $this->render_meta_box_output();
 
 		$this->assertContains(
-			'<select id="sticky-tax-term-id" name="sticky-tax-term-id[]"',
+			'<div class="term-sticky-list-wrap">',
 			$output,
-			'A <select> element with ID #sticky-tax-term-id and name "sticky-tax-term-id[]" should be created.'
-		);
-		$this->assertContains(
-			'size="3"',
-			$output,
-			'The <select> size attribute should account for Uncategorized, the <optgroup>, and the new category.'
+			'A <div> element with class "term-sticky-list-wrap" should be created.'
 		);
 		$this->assertContains(
 			'<input type="hidden" id="sticky-tax-nonce" name="sticky-tax-nonce"',
 			$output,
 			'The meta box should contain a hidden "sticky-tax-nonce" input.'
-		);
-	}
-
-	public function test_render_meta_box_limits_size_of_select() {
-		$this->factory()->category->create_many( 20 );
-
-		$output = $this->render_meta_box_output();
-
-		$this->assertContains(
-			'size="10"',
-			$output,
-			'The <select> size attribute should be capped at 10.'
 		);
 	}
 
@@ -172,6 +181,67 @@ class MetaTest extends WP_UnitTestCase {
 		Meta\save_post( $post_id );
 
 		$this->assertEquals( [ $cat_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_with_string_values() {
+		$post_id = $this->factory()->post->create();
+		$tag     = self::factory()->tag->create_and_get();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ 'post_tag:' . $tag->name ],
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $tag->term_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_checks_exploded_size_when_handling_string_values() {
+		$post_id = $this->factory()->post->create();
+		$tag     = self::factory()->tag->create_and_get();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ $tag->name ], // Does not include a taxonomy.
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty(
+			get_post_meta( $post_id, '_sticky_tax' ),
+			'Without a taxonomy prefix, save_post() should not attempt to look up a term name.'
+		);
+	}
+
+	public function test_save_post_handles_additional_colons_in_string_values() {
+		$post_id = $this->factory()->post->create();
+		$tag     = self::factory()->tag->create_and_get( [
+			'name' => 'Colons: This one uses many: So many.',
+		] );
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ 'post_tag:' . $tag->name ],
+		];
+
+		Meta\save_post( $post_id );
+
+		$this->assertEquals( [ $tag->term_id ], get_post_meta( $post_id, '_sticky_tax' ) );
+	}
+
+	public function test_save_post_handles_non_existent_strings() {
+		$post_id = $this->factory()->post->create();
+		$_POST   = [
+			'sticky-tax-nonce'   => wp_create_nonce( 'sticky-tax' ),
+			'sticky-tax-term-id' => [ 'post_tag:This Does Not Exist' ],
+		];
+
+		$this->assertFalse( get_term_by( 'name', 'This Does Not Exist', 'post_tag' ) );
+
+		Meta\save_post( $post_id );
+
+		$this->assertEmpty(
+			get_post_meta( $post_id, '_sticky_tax' ),
+			'We cannot sticky to a term that does not exist.'
+		);
 	}
 
 	public function test_save_post_can_remove_all_terms() {
@@ -306,13 +376,13 @@ class MetaTest extends WP_UnitTestCase {
 	 * @dataProvider register_script_hooks_provider()
 	 */
 	public function test_register_scripts( $hook, $expected ) {
-		$this->assertFalse( wp_script_is( 'select2', 'registered' ) );
-		$this->assertFalse( wp_style_is( 'select2', 'registered' ) );
+		$this->assertFalse( wp_script_is( 'sticky-tax-admin', 'registered' ) );
+		$this->assertFalse( wp_style_is( 'sticky-tax-admin', 'registered' ) );
 
 		Meta\register_scripts( $hook );
 
-		$this->assertEquals( $expected, wp_script_is( 'select2', 'enqueued' ) );
-		$this->assertEquals( $expected, wp_style_is( 'select2', 'enqueued' ) );
+		$this->assertEquals( $expected, wp_script_is( 'sticky-tax-admin', 'enqueued' ) );
+		$this->assertEquals( $expected, wp_style_is( 'sticky-tax-admin', 'enqueued' ) );
 	}
 
 	public function register_script_hooks_provider() {
@@ -322,31 +392,6 @@ class MetaTest extends WP_UnitTestCase {
 			'admin index page' => [ 'index.php', false ],
 			'post list table'  => [ 'edit.php', false ],
 		];
-	}
-
-	public function test_register_scripts_checks_for_existing_scripts() {
-		wp_register_script( 'select2', 'https://example.com', null, '0.0.7', true );
-		wp_register_style( 'select2', 'https://example.com', null, '0.0.7', true );
-
-		Meta\register_scripts( 'post.php' );
-
-		$this->assertEquals( '0.0.7', wp_scripts()->registered['select2']->ver );
-		$this->assertEquals( '0.0.7', wp_styles()->registered['select2']->ver );
-	}
-
-	public function test_register_scripts_will_register_style_if_script_is_missing() {
-		wp_register_script( 'select2', 'https://example.com', null, '0.0.7', true );
-
-		Meta\register_scripts( 'post.php' );
-
-		$this->assertTrue( wp_style_is( 'select2', 'enqueued' ) );
-	}
-
-	public function test_register_scripts_includes_inline_scripts_styles() {
-		Meta\register_scripts( 'post.php' );
-
-		$this->assertNotEmpty( wp_scripts()->registered['select2']->extra['after'] );
-		$this->assertNotEmpty( wp_styles()->registered['select2']->extra['after'] );
 	}
 
 	/**

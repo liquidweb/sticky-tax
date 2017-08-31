@@ -11,6 +11,10 @@
     {
       "name": "Steve Grunwell",
       "url": "https://stevegrunwell.com"
+    },
+    {
+      "name": "Andrew Norcross",
+      "url": "http://andrewnorcross.com"
     }
   ],
   "repository": {
@@ -24,11 +28,11 @@
   "private": true,
   "dependencies": {},
   "devDependencies": {
+    "eslint-config-wordpress": "^2.0.0",
     "grunt-contrib-copy": "^1.0.0",
-    "grunt-wp-i18n": "^1.0.0",
-    "select2": "^4.0.3"
-  },
-  "scripts": {
-    "postinstall": "mkdir -p lib/select2 && cp -r node_modules/select2/dist/* ./lib/select2"
+    "grunt-contrib-cssmin": "^2.2.1",
+    "grunt-contrib-uglify": "^3.0.1",
+    "grunt-eslint": "^20.0.0",
+    "grunt-wp-i18n": "^1.0.0"
   }
 }

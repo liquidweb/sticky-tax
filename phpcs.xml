@@ -12,6 +12,8 @@
 	<exclude-pattern>node_modules/*</exclude-pattern>
 	<exclude-pattern>tests/*</exclude-pattern>
 	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>assets/css/*.min.css</exclude-pattern>
+	<exclude-pattern>assets/js/*.min.js</exclude-pattern>
 
 	<!--
 		Don't get angry about checking files that don't contain code
@@ -35,6 +37,22 @@
 		<exclude-pattern>tests/*</exclude-pattern>
 	</rule>
 
-	<rule ref="WordPress-Extra" />
+	<!-- Don't require associative arrays to have each entry on a new line for tests. -->
+	<rule ref="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeKeyFound">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The "//end foreach" comment doesn't really fit within the WP coding standards. -->
+	<rule ref="Squiz.Commenting.LongConditionClosingComment.Missing">
+		<severity>0</severity>
+	</rule>
+
+	<rule ref="WordPress-Extra">
+		<properties>
+			<property name="custom_test_class_whitelist" type="array" value="WP_Ajax_UnitTestCase"/>
+		</properties>
+	</rule>
+
 	<rule ref="WordPress-Docs" />
+
 </ruleset>

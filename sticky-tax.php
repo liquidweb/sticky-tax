@@ -22,6 +22,8 @@ require __DIR__ . '/includes/meta.php';
 
 define( 'STICKY_TAX_URL', plugins_url( '/', __FILE__ ) );
 
+define( 'STICKY_TAX_VERS', '1.0.0' );
+
 /**
  * Load the plugin text domain.
  *
