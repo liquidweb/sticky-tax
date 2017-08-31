@@ -95,7 +95,7 @@
 			label.htmlFor = inputId;
 			label.classList.add( 'list-item-label' );
 			label.appendChild( input );
-			label.appendChild( document.createTextNode( name ) );
+			label.appendChild( document.createTextNode( ' ' + name ) );
 
 			li.id = 'item-' + termId;
 			li.dataset.termId = termId;

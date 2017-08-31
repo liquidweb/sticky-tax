@@ -54,7 +54,7 @@ add_filter( 'stickytax_post_types', 'add_sticky_tax_to_my_cpt' );
 
 ### Modifying the taxonomies included in Sticky Tax
 
-Sticky Tax tries to be helpful, and will automatically include terms from any taxonomy [that has been registered as "public"](https://developer.wordpress.org/reference/functions/register_taxonomy/#parameters). If you need to add or remove taxonomies from the list, you may do so via the `stickytax_taxonomies` filter:
+Sticky Tax tries to be helpful, and will automatically include terms from any taxonomy [that has been registered as "public"](https://developer.wordpress.org/reference/functions/register_taxonomy/#parameters) for that post type. If you need to add or remove taxonomies from the list, you may do so via the `stickytax_taxonomies` filter:
 
 ```php
 /**
