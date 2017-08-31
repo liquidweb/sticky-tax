@@ -123,9 +123,9 @@
 			}
 
 			if ( isNaN( parseInt( id, 10 ) ) ) {
-				item = list.querySelector( '[data-term-name="' + id + '"]' )
+				item = list.querySelector( '[data-term-name="' + id + '"]' );
 			} else {
-				item = list.querySelector( '[data-term-id="' + id + '"]' )
+				item = list.querySelector( '[data-term-id="' + id + '"]' );
 			}
 
 			if ( item ) {
