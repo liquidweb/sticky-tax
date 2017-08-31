@@ -103,18 +103,30 @@ function register_meta_boxes( $post_type, $post ) {
 	}
 
 	// Thin down the list to the taxonomy and the label.
-	$tax_data   = wp_list_pluck( $taxonomies, 'label', 'name' );
+	$tax_data = wp_list_pluck( $taxonomies, 'label', 'name' );
 
-	// Now call the actual meta box.
-	add_meta_box(
-		'sticky-tax',
-		_x( 'Sticky', 'meta box title', 'sticky-tax' ),
-		__NAMESPACE__ . '\render_meta_box',
-		$post_types,
-		'side',
-		'default',
-		$tax_data
-	);
+	// Register the meta boxes for each post type.
+	foreach ( $post_types as $post_type ) {
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( null === $post_type_object ) {
+			continue;
+		}
+
+		add_meta_box(
+			'sticky-tax',
+			sprintf(
+				/* Translators: %1$s is the singular post type name. */
+				_x( 'Promote %1$s', 'meta box title', 'sticky-tax' ),
+				$post_type_object->labels->singular_name
+			),
+			__NAMESPACE__ . '\render_meta_box',
+			$post_type,
+			'side',
+			'default',
+			$tax_data
+		);
+	}
 }
 add_action( 'add_meta_boxes', __NAMESPACE__ . '\register_meta_boxes', 10, 2 );
 
