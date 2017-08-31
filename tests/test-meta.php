@@ -66,27 +66,44 @@ class MetaTest extends WP_UnitTestCase {
 		$this->assertCount( 1, get_post_meta( $post_id, '_sticky_tax' ) );
 	}
 
-	public function test_register_meta_boxes_applies_taxonomy_filter() {
-		global $wp_meta_boxes;
+	public function test_get_taxonomies_for_object_filters_out_private_taxonomies() {
+		register_taxonomy( 'private-test-taxonomy', 'post', [
+			'public' => false,
+		] );
 
+		$this->assertArrayHasKey(
+			'private-test-taxonomy',
+			get_object_taxonomies( 'post', 'array' ),
+			'The temporary private taxonomy should be among taxonomies for the "post" post type.'
+		);
+
+		$this->assertArrayNotHasKey(
+			'private-test-taxonomy',
+			Meta\get_taxonomies_for_object( 'post' ),
+			'Private taxonomies should not be included by default when calling get_taxonomies_for_object().'
+		);
+	}
+
+	public function test_get_taxonomies_for_object_filters_taxonomies() {
 		$tax = get_taxonomy( 'category' );
 
 		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) use ( $tax ) {
-			$taxonomies[] = $tax;
-
-			return $taxonomies;
+			return [
+				'category' => $tax,
+			];
 		} );
 
-		$post = $this->factory->post->create_and_get();
-		$post_type = $post->post_type;
+		$this->assertEquals( [
+			'category' => $tax,
+		], Meta\get_taxonomies_for_object( 'post' ) );
+	}
 
-		Meta\register_meta_boxes( $post, $post_type );
+	public function test_get_taxonomies_for_object_always_returns_an_array() {
+		add_filter( 'stickytax_taxonomies', function ( $taxonomies ) {
+			return [];
+		} );
 
-		$this->assertArrayHasKey(
-			$tax->name,
-			$wp_meta_boxes['post']['side']['default']['sticky-tax']['args'],
-			'The stickytax_taxonomies filter should be applied when registering meta boxes.'
-		);
+		$this->assertEquals( [], Meta\get_taxonomies_for_object( 'post' ) );
 	}
 
 	public function test_register_meta_boxes_applies_post_type_filter() {

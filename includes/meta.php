@@ -40,25 +40,18 @@ function sticky_post_for_term( $post_id, $term_id ) {
 /**
  * Fetch the taxonomies tied to a particular object.
  *
- * @param  object  $object  The object we're looking against.
- * @param  string  $output  The format to output.
- * @param  boolean $public  Whether to remove the non-public ones or not.
- *
- * @return array
+ * @param string|WP_Post $post_type Either a post type or an instance of a WP_Post object that's
+ *                                  representative of the post type we're checking against.
+ * @return array An array of available taxonomies, keyed with the taxonomy name. If no taxonomies
+ *               are available, an empty array will be returned.
  */
-function get_taxonomies_for_object( $object, $output = 'objects', $public = true ) {
+function get_taxonomies_for_object( $post_type ) {
+	$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 
-	// Set the arguments for getting all the available taxonomies.
-	$taxonomies = get_object_taxonomies( $object, 'objects' );
-
-	// Look to see if we have non-public ones, if requested.
-	if ( ! empty( $taxonomies ) && ! empty( $public ) ) {
-
-		// Loop the taxonomies and unset the ones that are not public.
-		foreach ( $taxonomies as $type => $single ) {
-
-			// If it's empty, unset.
-			if ( empty( $single->public ) ) {
+	// Filter out non-public taxonomies by default.
+	if ( ! empty( $taxonomies ) ) {
+		foreach ( $taxonomies as $type => $tax ) {
+			if ( ! $tax->public ) {
 				unset( $taxonomies[ $type ] );
 			}
 		}
@@ -67,12 +60,12 @@ function get_taxonomies_for_object( $object, $output = 'objects', $public = true
 	/**
 	 * Retrieve an array of taxonomies that may possess sticky posts.
 	 *
-	 * @param array $taxonomies Taxonomies for which posts should be able to stick.
+	 * @param array $taxonomies Taxonomies for which posts should be able to stick. Each
+	 *                          WP_Taxonomy object is keyed with the taxonomy name.
 	 */
 	$taxonomies = apply_filters( 'stickytax_taxonomies', $taxonomies );
 
-	// Return the array or false.
-	return ! empty( $taxonomies ) ? $taxonomies : false;
+	return (array) $taxonomies;
 }
 
 /**
@@ -96,7 +89,7 @@ function register_meta_boxes( $post_type, $post ) {
 	}
 
 	// Attempt to get our taxonomies and bail without them.
-	$taxonomies = get_taxonomies_for_object( $post, 'objects' );
+	$taxonomies = get_taxonomies_for_object( $post );
 
 	if ( empty( $taxonomies ) ) {
 		return;
