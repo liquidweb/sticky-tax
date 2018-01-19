@@ -2,7 +2,7 @@
 Contributors: liquidweb, stevegrunwell, norcross
 Tags: sticky, taxonomies, sticky posts, categories, tags
 Requires at least: 4.6
-Tested up to: 4.8.1
+Tested up to: 4.9.2
 Requires PHP: 5.3
 Stable tag: 1.0.0
 License: MIT
