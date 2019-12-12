@@ -49,7 +49,7 @@ archive. Each sticky post even gets a `.sticky-tax` class added to it, enabling 
 
 = Can I use Sticky Tax for other post types and/or taxonomies =
 
-Absolutely! Sticky Tax includes a number of filters that make customizing Sticky Tax a snap; for full details, [please visit the plugin's README on GitHub](https://github.com/liquidweb/sticky-tax/tree/build-steps#advanced-usage).
+Absolutely! Sticky Tax includes a number of filters that make customizing Sticky Tax a snap; for full details, [please visit the plugin's README on GitHub](https://github.com/liquidweb/sticky-tax#advanced-usage).
 
 
 = Can I style sticky posts separately from regular, non-sticky posts? =
